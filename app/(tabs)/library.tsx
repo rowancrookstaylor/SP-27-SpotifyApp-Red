@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function Dashboard() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>This is your dashboard</Text>
+      <Text style={styles.text}>This is your library</Text>
     </View>
   );
 }
