@@ -1,8 +1,8 @@
-// app/tabs/Dashboard/index.tsx
+// app/tabs/library.tsx
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function Dashboard() {
+export default function Library() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>This is your library</Text>
