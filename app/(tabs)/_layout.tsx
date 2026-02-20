@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: 'Player',
           tabBarLabel: 'Player',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="play.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -37,7 +37,7 @@ export default function TabLayout() {
         options={{
           title: 'Library',
           tabBarLabel: "Library",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
         }}
       />
       <Tabs.Screen

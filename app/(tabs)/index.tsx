@@ -1,12 +1,20 @@
 // app/tabs/index.tsx
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function Dashboard() {
+   const iconNames = Object.keys(IconSymbol);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>This is your dashboard</Text>
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      {iconNames.map((name) => (
+        <View key={name} style={styles.row}>
+          <IconSymbol name={name as any} size={24} color={'white'}/>
+          <Text style={styles.text}>{name}</Text>
+        </View>
+      ))}
+    </ScrollView>
   );
 }
 
@@ -19,7 +27,14 @@ const styles = StyleSheet.create({
   },
   text: {
     color: 'white',                 // white text for contrast
-    fontSize: 24,
+    fontSize: 10,
+    marginLeft: 10,
     fontWeight: 'bold',
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+
 });
