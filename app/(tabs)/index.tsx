@@ -9,10 +9,8 @@ export default function Dashboard() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {iconNames.map((name) => (
-        <View key={name} style={styles.row}>
-          <IconSymbol name={name as any} size={24} color={'white'}/>
+        <IconSymbol name={name as any} size={24} color={'white'}/>
           <Text style={styles.text}>{name}</Text>
-        </View>
       ))}
     </ScrollView>
   );
