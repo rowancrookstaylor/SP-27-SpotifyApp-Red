@@ -41,7 +41,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="searchMusic"
+        name="Find"
         options={{
           title: 'Search',
           tabBarLabel: 'Search',
