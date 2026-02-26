@@ -22,11 +22,11 @@ export default function Dashboard() {
         {/*New Music*/}
       <View style={styles.element}>
         <Text style={styles.text}>
-          New Music 
+                      New Music
         </Text>
       </View>
       
-        {/*Element list*/}
+        {/*name*/}
       <View style={styles.element}>
         <Text style={styles.text}>
           otherefefsef
