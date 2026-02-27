@@ -1,40 +1,118 @@
 // app/tabs/index.tsx
 //import { IconSymbol } from '@/components/ui/icon-symbol';
 //import * as AuthSession from 'expo-auth-session';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSpotifyAuth } from '../../auth/spotifyAuth';
+import {
+    exchangeCodeForToken,
+    getUserProfile,
+} from '../../services/spotifyApi';
+import { Float } from 'react-native/Libraries/Types/CodegenTypes';
+import { useSpotify } from '../../context/SpotifyContext';
+
+type playbackState = {
+    device: {
+        id: string,
+        is_active: boolean,
+        is_private_session: boolean,
+        volume_percent: string,
+    },
+    repeat_state: string,
+    shuffle_state: boolean,
+    context: {
+        type: string,
+        href: string,
+        external_urls: {
+            spotify: string
+        }
+    },
+    timestamp: string,
+    progress_ms: string,
+    is_playing: boolean,
+    item: {
+        album: {
+            album_type: string,
+            total_tracks: 9,
+            id: string,
+            images: {
+                url: string;
+            },
+            name: string,
+            release_date: string,
+        },
+        artists: {
+            name: string,
+            id: string,
+            uri: string
+        }
+
+        disc_number: string,
+        duration: string,
+        explicit: boolean,
+        name: string,
+        track_number: string,
+        type: string,
+        uri: string,
+        is_local: boolean,
+    },
+    actions: {
+        interrupting_playback: false,
+        pausing: false,
+        resuming: false,
+        seeking: false,
+        skipping_next: false,
+        skipping_prev: false,
+        toggling_repeat_context: false,
+        toggling_shuffle: false,
+        toggling_repeat_track: false,
+        transferring_playback: false
+    }
+};
 
 export default function Player() {
-  //const redirect = AuthSession.makeRedirectUri();
-  //console.log(redirect);
+    //const { request, response, promptAsync, redirectUri } =
+        //useSpotifyAuth();
+
+    //const [user, setUser] = useState<any>(null);
+    const { token, setToken } = useSpotify();
+
+    const [playbackState, setPlaybackState] = useState<playbackState | null>(null);
+
+    //fetch functions
+    useEffect(() => {
+        if (!token) return;
+
+        // Playback State
+        fetch('https://api.spotify.com/v1/me/player', {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(async res => {
+                if (res.status === 204) return null;
+                return res.json();
+            })
+            .then(data => setPlaybackState(data))
+            .catch(err => console.error(err));
+
+        
+
+    }, [token]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.settingsBar}>
-        <Text style={styles.text}>
-          top bar text
-        </Text>
-      </View>
+      <View style={{ flex: 1, backgroundColor: 'black' }}>
+          <ScrollView style={{ marginTop: 50 }}>
+              <Text style={styles.text }>
+                  {playbackState
+                      ? playbackState.is_playing
+                          ? "Currently Playing"
+                          : "Paused"
+                      : "No active playback"}
+              </Text>
 
-      {/*Element list*/}
-      <ScrollView contentContainerStyle={styles.container}>
+          </ScrollView>
 
-        {/*New Music*/}
-      <View style={styles.element}>
-        <Text style={styles.text}>
-          New Music 
-        </Text>
-      </View>
-      
-        {/*Element list*/}
-      <View style={styles.element}>
-        <Text style={styles.text}>
-          otherefefsef
-        </Text>
-      </View>
 
-    </ScrollView>
-    </View>
+      </View>
   );
 }
 

@@ -1,21 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { View, Button, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Button, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { useSpotifyAuth } from '../../auth/spotifyAuth';
 import {
     exchangeCodeForToken,
     getUserProfile,
 } from '../../services/spotifyApi';
-//import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
+import { useSpotify } from '../../context/SpotifyContext';
+
+type Artist = {
+    name: string;
+    id: string;
+    uri: string;
+    image: Image;
+};
+
+type Track = {
+    name: string;
+    artists: Artist[];
+    album: {
+        images: { url: string }[];
+    };
+};
 
 export default function Home() {
+
+
     const { request, response, promptAsync, redirectUri } =
         useSpotifyAuth();
 
-    const [user, setUser] = useState< any >(null);
-    const [token, setToken] = useState< string | null >(null);
-
-   
-
+    const [user, setUser] = useState<any>(null);
+    //const [token, setToken] = useState<string | null>(null);
+    const { token, setToken } = useSpotify();
 
     //control login
     useEffect(() => {
@@ -42,16 +57,17 @@ export default function Home() {
     }, [response]);
 
 
-    const [topArtists, setTopArtists] = useState< any[] >([]);
-    const [topTracks, setTopTracks] = useState< any[] >([]);
-    const [playlists, setPlaylists] = useState< any[] >([]);
-    const [recentlyPlayed, setRecentlyPlayed] = useState< any[] >([]);
+    const [topArtists, setTopArtists] = useState<any[]>([]);
+    const [topTracks, setTopTracks] = useState<Track[]>([]);
+    const [playlists, setPlaylists] = useState<any[]>([]);
+    const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
 
+    //fetch functions
     useEffect(() => {
         if (!token) return;
 
         // Top Artists
-        fetch('https://api.spotify.com/v1/me/top/artists?time_range=medium_term&offset=0', {
+        fetch('https://api.spotify.com/v1/me/top/artists?time_range=medium_term&offset=0&limit=6', {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
@@ -59,7 +75,7 @@ export default function Home() {
             .catch(err => console.error(err));
 
         // Top Tracks
-        fetch('https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=5&offset=0', {
+        fetch('https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=6&offset=0', {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
@@ -82,85 +98,102 @@ export default function Home() {
             .then(data => setRecentlyPlayed(data.items))
             .catch(err => console.error(err));
 
+        // New Music
+        fetch('https://api.spotify.com/v1/browse/new-releases')
+
     }, [token]);
 
+    
+    
 
     return (
-        <View>
-            <View style={{ padding: 20}}>
+        <View style={{ flex: 1, backgroundColor: 'black' }}>
+            <View style={{ padding: 20, flex: 1 }}>
                 {!user ? (
-                    <View style={{marginTop: 100} }>
+                    <View style={{ marginTop: 100 }}>
                         <Button
                             title="Login with Spotify"
                             disabled={!request}
-                            onPress={() => {
-                                promptAsync();
-                            }}
-
+                            onPress={() => promptAsync()}
                         />
                     </View>
                 ) : (
-                    <View>
+                    <>
                         <View style={styles.settingsBar}>
-                            <Text style={styles.text}>
-                                    settings bar
-                            </Text>
-                            </View>
+                            <Text style={styles.text}>settings bar</Text>
+                        </View>
 
+                            <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false }>
+                            <View style={styles.element}>
+                                <Text style={styles.elementTitle}>
+                                    Your Top Items
+                                </Text>
 
-                    {/*Dashboard Elements*/}
-                        <ScrollView style={{ height: '100%', marginTop: 20 }}>
-                            
-                                <View style={styles.element}> {/*Top Artists*/}
+                                <Text style={styles.elementSubhead}>
+                                    Top Artists (Last 6 Months)
+                                </Text>
 
-                                    <Text style={styles.elementTitle}>
-                                Your Top Items 
-                                    </Text>
+                                    <View style={styles.topRow}>
+                                        {topArtists.slice(0, 6).map((artist, index) => (
+                                            <View key={index} style={styles.topCard}>
 
-                                    <Text style={styles.elementSubhead}>
-                                        Top Artists (Last 6 Months)
-                                    </Text>
-                                    
-                                    <Text style={styles.text }>
-                                        {topArtists?.[0]?.name ?? "Loading..."}
-                                    </Text>
+                                                {artist?.images?.[0]?.url && (
+                                                    <Image
+                                                        source={{ uri: artist.images[0].url }}
+                                                        style={styles.topImage}
+                                                    />
+                                                )}
 
-                                    <Text style={styles.text}>
-                                        {topArtists?.[1]?.name ?? "Loading..."}
-                                    </Text>
+                                                <Text style={styles.topName}>
+                                                    {artist?.name ?? "Loading..."}
+                                                </Text>
 
-                                    <Text style={styles.text}>
-                                        {topArtists?.[2]?.name ?? "Loading..."}
-                                    </Text>
-
-                                    <Text style={styles.text}>
-                                        {topArtists?.[3]?.name ?? "Loading..."}
-                                    </Text>
-
-                                    <Text style={styles.text}>
-                                        {topArtists?.[4]?.name ?? "Loading..."}
-                                    </Text>
-
-                                    
-                                </View>
-
+                                            </View>
+                                        ))}
+                                    </View>
                                 
 
-                            {/*name*/}
-                            <View style={styles.element}>
-                                <Text style={styles.text}>
-                                    otherefefsef
+                                <Text style={styles.elementSubhead}>
+                                    Top Tracks (Last 6 Months)
                                 </Text>
+
+                                    <View style={styles.topRow}>
+                                        {topTracks.slice(0, 6).map((track, index) => (
+                                            <View key={index} style={styles.topCard}>
+
+                                                {track?.album?.images?.[0]?.url && (
+                                                    <Image
+                                                        source={{ uri: track?.album?.images[0].url }}
+                                                        style={styles.topImage}
+                                                    />
+                                                )}
+
+                                                <Text style={styles.topName}>
+                                                    {track?.name ?? "Loading..."}
+                                                </Text>
+
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View> 
+
+                            <View style={styles.element}>
+                                <Text style={styles.elementTitle}>
+                                    New Music
+                                </Text>
+
+                                    
+
+
                             </View>
                         </ScrollView>
-                    </View>
-
-                    
+                    </>
                 )}
             </View>
-
         </View>
     );
+
+    
 }
 
 const styles = StyleSheet.create({
@@ -181,8 +214,8 @@ const styles = StyleSheet.create({
     },
     text: {
         color: 'white',
-        fontSize: 10,
-        marginLeft: 10,
+        fontSize: 12,
+        marginLeft: 5,
         paddingVertical: 5,
     },
     row: {
@@ -193,7 +226,7 @@ const styles = StyleSheet.create({
     settingsBar: {
         height: 60,
         width: '100%',
-        backgroundColor: '#00000',
+        backgroundColor: '#000000',
         justifyContent: 'center',
         alignItems: 'center',
         borderBottomWidth: 1,
@@ -204,7 +237,11 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: 'white',
-        
+        borderBottomWidth: 2,
+        marginBottom: 5,
+        paddingBottom: 5,
+        borderBottomColor: '#333',
+
     },
     elementText: {
         color: 'white',
@@ -216,6 +253,44 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold',
         color: 'white',
-    }
+    },
+    ttopImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 25, // makes it circular
+        marginRight: 10,
+        marginLeft: 5
+    },
+    imageBelow: {
+        alignItems: 'flex-start',
+        marginBottom: 12,
+    },
+    topRow: {
+        flexDirection: 'row',       // makes them side by side
+        justifyContent: 'flex-start',
+        flexWrap: 'wrap',           // optional: allows wrapping if screen small
+    },
 
+    topCard: {
+        alignItems: 'center',       // center text under image
+        marginRight: 15,
+        marginBottom: 20,
+        width: 80,                  // keeps spacing consistent
+        marginTop: 10,
+    },
+
+    topImage: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,           // circle
+        marginBottom: 6,
+    },
+
+    topName: {
+        color: 'white',
+        fontSize: 11,
+        textAlign: 'center',
+    }
 });
+
+
