@@ -1,14 +1,8 @@
 // app/tabs/index.tsx
 //import { IconSymbol } from '@/components/ui/icon-symbol';
 //import * as AuthSession from 'expo-auth-session';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSpotifyAuth } from '../../auth/spotifyAuth';
-import {
-    exchangeCodeForToken,
-    getUserProfile,
-} from '../../services/spotifyApi';
-import { Float } from 'react-native/Libraries/Types/CodegenTypes';
 import { useSpotify } from '../../context/SpotifyContext';
 
 type playbackState = {
@@ -107,6 +101,13 @@ export default function Player() {
                           ? "Currently Playing"
                           : "Paused"
                       : "No active playback"}
+              </Text>
+              <Text style={styles.text }>
+                  {playbackState
+                      ? playbackState.item.name
+                      : "No Playback"
+
+}
               </Text>
 
           </ScrollView>
