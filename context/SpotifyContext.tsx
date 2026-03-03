@@ -1,26 +1,31 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 
-type SpotifyContextType = {
-    token: string | null;
-    setToken: (token: string | null) => void;
+interface SpotifyContextProps {
+  accessToken: string | null;
+  refreshToken: string | null;
+  setTokens: (access: string, refresh: string) => void;
+}
+
+const SpotifyContext = createContext<SpotifyContextProps>({
+  accessToken: null,
+  refreshToken: null,
+  setTokens: () => {}
+});
+
+export const SpotifyProvider = ({ children }: { children: ReactNode }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+
+  const setTokens = (access: string, refresh: string) => {
+    setAccessToken(access);
+    setRefreshToken(refresh);
+  };
+
+  return (
+    <SpotifyContext.Provider value={{ accessToken, refreshToken, setTokens }}>
+      {children}
+    </SpotifyContext.Provider>
+  );
 };
 
-const SpotifyContext = createContext<SpotifyContextType | undefined>(undefined);
-
-export const SpotifyProvider = ({ children }: { children: React.ReactNode }) => {
-    const [token, setToken] = useState<string | null>(null);
-
-    return (
-        <SpotifyContext.Provider value={{ token, setToken }}>
-            {children}
-        </SpotifyContext.Provider>
-    );
-};
-
-export const useSpotify = () => {
-    const context = useContext(SpotifyContext);
-    if (!context) {
-        throw new Error('useSpotify must be used inside SpotifyProvider');
-    }
-    return context;
-};
+export const useSpotify = () => useContext(SpotifyContext);
