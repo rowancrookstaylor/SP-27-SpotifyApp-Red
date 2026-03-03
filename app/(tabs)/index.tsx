@@ -1,13 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { Button, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSpotifyAuth } from '../../auth/spotifyAuth';
+//import { useSpotifyAuth } from '../../auth/spotifyAuth';
+import * as Linking from "expo-linking";
 import { useSpotify } from "../../context/SpotifyContext";
-import {
-    exchangeCodeForToken,
-    getUserProfile,
-    refreshAccessToken
-} from '../../services/spotifyApi';
+
+const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com"; // <-- CHANGE THIS
 
 type Artist = {
     name: string;
@@ -26,57 +23,42 @@ type Track = {
 
 export default function Home() {
 
-
-    const { request, response, promptAsync, redirectUri } =
-        useSpotifyAuth();
-
-    const [user, setUser] = useState<any>(null);
-    //const [token, setToken] = useState<string | null>(null);
     const { token, setToken } = useSpotify();
 
-    //control login
-    useEffect(() => {
-        const handleAuth = async () => {
-            if (response?.type === 'success') {
-                const { code } = response.params;
-
-                const tokenData = await exchangeCodeForToken(
-                    code,
-                    redirectUri,
-                    request?.codeVerifier!
-                );
-
-                const expirationTime =
-                    Date.now() + tokenData.expires_in * 1000;
-
-                await AsyncStorage.multiSet([
-                    ['spotify_access_token', tokenData.access_token],
-                    ['spotify_refresh_token', tokenData.refresh_token],
-                    ['spotify_expiration', expirationTime.toString()],
-                ]);
-
-                setToken(tokenData.access_token);
-
-                const profile = await getUserProfile(tokenData.access_token);
-                setUser(profile);
-}
-        };
-
-        handleAuth();
-    }, [response]);
-
-
+    const [user, setUser] = useState<any>(null);
     const [topArtists, setTopArtists] = useState<any[]>([]);
-    const [topTracks, setTopTracks] = useState<Track[]>([]);
+    const [topTracks, setTopTracks] = useState<any[]>([]);
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
 
-    //fetch functions
+    // 🔐 Listen for deep link token from backend
+    useEffect(() => {
+        const sub = Linking.addEventListener("url", (event) => {
+            const data = Linking.parse(event.url);
+            const rawToken = data.queryParams?.access_token;
+
+            if (typeof rawToken === "string") {
+                setToken(rawToken);
+            }
+        });
+
+        return () => sub.remove();
+    }, []);
+
+    // 👤 Fetch user profile + data from backend
     useEffect(() => {
         if (!token) return;
 
+        // Profile
+        fetch(`${BASE_URL}/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => res.json())
+            .then(data => setUser(data))
+            .catch(err => console.error(err));
+
         // Top Artists
-        fetch('https://api.spotify.com/v1/me/top/artists?time_range=medium_term&offset=0&limit=6', {
+        fetch(`${BASE_URL}/top-artists`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
@@ -84,7 +66,7 @@ export default function Home() {
             .catch(err => console.error(err));
 
         // Top Tracks
-        fetch('https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=6&offset=0', {
+        fetch(`${BASE_URL}/top-tracks`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
@@ -92,179 +74,99 @@ export default function Home() {
             .catch(err => console.error(err));
 
         // Playlists
-        fetch('https://api.spotify.com/v1/me/playlists?limit=5', {
+        fetch(`${BASE_URL}/playlists`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
             .then(data => setPlaylists(data.items))
             .catch(err => console.error(err));
 
-        // Recently Played Tracks
-        fetch('https://api.spotify.com/v1/me/player/recently-played?limit=5', {
+        // Recently Played
+        fetch(`${BASE_URL}/recently-played`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
             .then(data => setRecentlyPlayed(data.items))
             .catch(err => console.error(err));
 
-        // New Music
-        fetch('https://api.spotify.com/v1/browse/new-releases')
-
     }, [token]);
-
-    //refresh login
-    useEffect(() => {
-    const initializeAuth = async () => {
-        const values = await AsyncStorage.multiGet([
-            'spotify_access_token',
-            'spotify_refresh_token',
-            'spotify_expiration',
-        ]);
-
-        const accessToken = values[0][1];
-        const refreshToken = values[1][1];
-        const expiration = values[2][1];
-
-        if (!accessToken || !refreshToken || !expiration) return;
-
-        const isExpired =
-            Date.now() > Number(expiration) - 60000;
-
-        let validToken = accessToken;
-
-        if (isExpired) {
-            try {
-                const newTokenData =
-                    await refreshAccessToken(refreshToken);
-
-                const newExpiration =
-                    Date.now() + newTokenData.expires_in * 1000;
-
-                await AsyncStorage.multiSet([
-                    ['spotify_access_token', newTokenData.access_token],
-                    ['spotify_expiration', newExpiration.toString()],
-                ]);
-
-                validToken = newTokenData.access_token;
-            } catch (error) {
-                console.error('Refresh failed', error);
-                return;
-            }
-        }
-
-        setToken(validToken);
-
-        const profile = await getUserProfile(validToken);
-        setUser(profile);
-    };
-
-    initializeAuth();
-}, []);   
-
-    //load token
-    useEffect(() => {
-        const loadToken = async () => {
-            const storedToken = await AsyncStorage.getItem('spotify_token');
-
-            if(storedToken) {
-                setToken(storedToken);
-                const profile = await getUserProfile(storedToken);
-                setUser(profile);
-            }
-        };
-
-        loadToken();
-    }, []);
-    
 
     return (
         <View style={{ flex: 1, backgroundColor: 'black' }}>
             <View style={{ padding: 20, flex: 1 }}>
+
                 {!user ? (
                     <View style={{ marginTop: 100 }}>
                         <Button
                             title="Login with Spotify"
-                            disabled={!request}
-                            onPress={() => promptAsync()}
+                            onPress={() =>
+                                Linking.openURL(`${BASE_URL}/login`)
+                            }
                         />
                     </View>
                 ) : (
                     <>
                         <View style={styles.settingsBar}>
-                            <Text style={styles.text}>settings bar</Text>
+                            <Text style={styles.text}>
+                                Logged in as {user?.display_name}
+                            </Text>
                         </View>
 
-                            <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false }>
+                        <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false}>
+
+                            {/* TOP ARTISTS */}
                             <View style={styles.element}>
                                 <Text style={styles.elementTitle}>
-                                    Your Top Items
+                                    Your Top Artists
                                 </Text>
 
-                                <Text style={styles.elementSubhead}>
-                                    Top Artists (Last 6 Months)
-                                </Text>
-
-                                    <View style={styles.topRow}>
-                                        {topArtists.slice(0, 6).map((artist, index) => (
-                                            <View key={index} style={styles.topCard}>
-
-                                                {artist?.images?.[0]?.url && (
-                                                    <Image
-                                                        source={{ uri: artist.images[0].url }}
-                                                        style={styles.topImage}
-                                                    />
-                                                )}
-
-                                                <Text style={styles.topName}>
-                                                    {artist?.name ?? "Loading..."}
-                                                </Text>
-
-                                            </View>
-                                        ))}
-                                    </View>
-                                
-
-                                <Text style={styles.elementSubhead}>
-                                    Top Tracks (Last 6 Months)
-                                </Text>
-
-                                    <View style={styles.topRow}>
-                                        {topTracks.slice(0, 6).map((track, index) => (
-                                            <View key={index} style={styles.topCard}>
-
-                                                {track?.album?.images?.[0]?.url && (
-                                                    <Image
-                                                        source={{ uri: track?.album?.images[0].url }}
-                                                        style={styles.topImage}
-                                                    />
-                                                )}
-
-                                                <Text style={styles.topName}>
-                                                    {track?.name ?? "Loading..."}
-                                                </Text>
-
-                                            </View>
-                                        ))}
-                                    </View>
-                                </View> 
-
-                            <View style={styles.element}>
-                                <Text style={styles.elementTitle}>
-                                    New Music
-                                </Text>
-
-                                    
-
-
+                                <View style={styles.topRow}>
+                                    {topArtists.slice(0, 6).map((artist, index) => (
+                                        <View key={index} style={styles.topCard}>
+                                            {artist?.images?.[0]?.url && (
+                                                <Image
+                                                    source={{ uri: artist.images[0].url }}
+                                                    style={styles.topImage}
+                                                />
+                                            )}
+                                            <Text style={styles.topName}>
+                                                {artist?.name}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
                             </View>
+
+                            {/* TOP TRACKS */}
+                            <View style={styles.element}>
+                                <Text style={styles.elementTitle}>
+                                    Your Top Tracks
+                                </Text>
+
+                                <View style={styles.topRow}>
+                                    {topTracks.slice(0, 6).map((track, index) => (
+                                        <View key={index} style={styles.topCard}>
+                                            {track?.album?.images?.[0]?.url && (
+                                                <Image
+                                                    source={{ uri: track.album.images[0].url }}
+                                                    style={styles.topImage}
+                                                />
+                                            )}
+                                            <Text style={styles.topName}>
+                                                {track?.name}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+
                         </ScrollView>
                     </>
                 )}
+
             </View>
         </View>
     );
-
-    
 }
 
 const styles = StyleSheet.create({
