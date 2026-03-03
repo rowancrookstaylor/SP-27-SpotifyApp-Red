@@ -48,7 +48,9 @@ app.get("/login", (req, res) => {
 // ---------- CALLBACK ROUTE ----------
 app.post("/callback", async (req, res) => {
   //const code = req.query.code;
-  const { code, codeVerifier } = req.body;//new
+  //const { code, codeVerifier } = req.body;//new
+  const code = req.query.code;
+  const codeVerifier = req.query.codeVerifier;
 
   if (!code) return res.status(400).send("Missing code");
 
