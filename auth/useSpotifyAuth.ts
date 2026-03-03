@@ -6,9 +6,29 @@ import { useSpotify } from '../context/SpotifyContext';
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const BACKEND_URL = 'https://YOUR_RENDER_BACKEND_URL';
 
-function generateRandomString(length: number) {
+export function generateRandomString(length: number) {
   const randomBytes = Random.getRandomBytes(length);
-  return base64.encodeFromByteArray(randomBytes);
+  let result = '';
+  for (let i = 0; i < randomBytes.length; i++) {
+    result += String.fromCharCode(randomBytes[i]);
+  }
+  return base64.encode(result)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+// Generate the SHA-256 code challenge
+export async function generateCodeChallenge(codeVerifier: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashString = String.fromCharCode(...hashArray);
+  return base64.encode(hashString)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }
 
 export function useSpotifyAuth() {
