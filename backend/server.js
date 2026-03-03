@@ -1,22 +1,16 @@
 // backend/server.js
 import dotenv from "dotenv";
 import path from 'path';
-dotenv.config({ path: path.join(__dirname, ".env") });
-
-
-
-import { useEffect } from 'react';
-import { fileURLToPath } from "url";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 
 import { Buffer } from 'buffer';
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
+import { fileURLToPath } from "url";
 
 
 
@@ -98,21 +92,7 @@ app.post("/callback", async (req, res) => {
   }
 });
 
-// ---------- whatever this is ----------
-useEffect(() => {
-  if (response?.type === "success") {
-    const { code } = response.params;
 
-    fetch(`${BASE_URL}/callback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code,
-        codeVerifier: request?.codeVerifier,
-      }),
-    });
-  }
-}, [response]);
 
 
 // ---------- PROTECTED ROUTES ----------
