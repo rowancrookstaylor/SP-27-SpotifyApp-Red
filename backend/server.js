@@ -13,9 +13,7 @@ import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
 
-console.log("CLIENT_ID:", process.env.SPOTIFY_CLIENT_ID);
-console.log("CLIENT_SECRET:", process.env.SPOTIFY_CLIENT_SECRET ? "[HIDDEN]" : "MISSING");
-console.log("REDIRECT_URI:", process.env.SPOTIFY_REDIRECT_URI);
+
 
 
 if (!process.env.SPOTIFY_CLIENT_ID ||
@@ -85,7 +83,7 @@ app.get("/callback", async (req, res) => {
     res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
   } catch (err) {
     console.error("Callback fetch error:", err);
-    res.status(500).send("Error exchanging code for token");
+    res.status(500).send("Error exchanging code for token :(");
   }
 });
 

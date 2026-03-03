@@ -1,6 +1,5 @@
 // auth/spotifyAuth.ts
 
-
 import * as AuthSession from 'expo-auth-session';
 
 const CLIENT_ID = '9757040e89904a92871a38381243d8e8';
