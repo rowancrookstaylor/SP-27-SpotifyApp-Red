@@ -22,20 +22,13 @@ const PORT = process.env.PORT || 8081;
 
 // ---------- LOGIN ROUTE ----------
 app.get("/login", (req, res) => {
-    console.log("REDIRECT URI:", process.env.SPOTIFY_REDIRECT_URI);
-
-  if (!process.env.SPOTIFY_REDIRECT_URI) {
-    return res.status(500).send("Redirect URI is undefined on backend");
-  }
-
-  const scope =
-    "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
+  const scope = "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
 
   const queryParams = new URLSearchParams({
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+    redirect_uri: process.env.SPOTIFY_REDIRECT_URI, // must match Spotify Dashboard
   });
 
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}`);
@@ -45,10 +38,6 @@ app.get("/login", (req, res) => {
 app.get("/callback", async (req, res) => {
   const code = req.query.code;
   if (!code) return res.status(400).send("Missing code");
-
-  if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET || !process.env.SPOTIFY_REDIRECT_URI) {
-    return res.status(500).send("Spotify env variables are missing");
-  }
 
   try {
     const body = new URLSearchParams({
@@ -70,15 +59,18 @@ app.get("/callback", async (req, res) => {
       body: body,
     });
 
-    
+    const tokenData = await tokenResponse.json();
+    console.log("Spotify token response:", tokenData);
 
-const data = await response.json();
-console.log("Spotify token response:", data);
+    if (tokenData.error) {
+      console.error("Spotify token error:", tokenData);
+      return res.status(500).send("Error getting token from Spotify");
+    }
 
-    // Redirect to app with access & refresh token
-    res.redirect(`spotifyapp://?access_token=${data.access_token}&refresh_token=${data.refresh_token}`);
+    // Redirect to Expo app deep link
+    res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
   } catch (err) {
-    console.error(err);
+    console.error("Callback fetch error:", err);
     res.status(500).send("Error exchanging code for token");
   }
 });
