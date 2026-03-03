@@ -30,31 +30,72 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 8081;
 
+// ---------- GENERATE VERIFIER -----------
+const generateRandomString = (length) => {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+}
+
+const codeVerifier  = generateRandomString(64);
+
+const sha256 = async (plain) => {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(plain)
+  return window.crypto.subtle.digest('SHA-256', data)
+}
+
+const base64encode = (input) => {
+  return btoa(String.fromCharCode(...new Uint8Array(input)))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+const hashed = await sha256(codeVerifier)
+const codeChallenge = base64encode(hashed);
+
+
+
+
+
+
 // ---------- LOGIN ROUTE ----------
 app.get("/login", (req, res) => {
   const scope = "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
+
+  window.localStorage.setItem('code_verifier', codeVerifier);
 
   const queryParams = new URLSearchParams({
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope,
+    code_challenge_method: 'S256',
+    code_challenge: codeChallenge,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI, // must match Spotify Dashboard
+
   });
 
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}`);
 });
 
+// ------------------------------------
+
+const urlParams = new URLSearchParams(window.location.search);
+let code = urlParams.get('code');
+
 // ---------- CALLBACK ROUTE ----------
 app.get("/callback", async (req, res) => {
   
-  const code = req.query.code;
-  const codeVerifier = req.codeVerifier;
+  //const code = req.query.code;
+  const codeVerifier = localStorage.getItem('code_verifier');
 
   if (!code) return res.status(400).send("Missing code");
-
+  if (!codeVerifier) return res.status(400).send("Missing verifier");
   
   try {
       const body = new URLSearchParams({
+        client_id: process.env.SPOTIFY_CLIENT_ID,
         grant_type: "authorization_code",
         code,
         redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
