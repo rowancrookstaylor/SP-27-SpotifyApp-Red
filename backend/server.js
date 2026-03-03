@@ -26,30 +26,51 @@ if (!process.env.SPOTIFY_CLIENT_ID ||
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 const PORT = process.env.PORT || 8081;
+
+// ----------------------
+// IN-MEMORY STORE FOR LOGIN PKCE
+// ----------------------
+// Key: loginId (from state), Value: code_verifier
+// Temporary storage; safe for dev/testing with multiple teammates
+const loginVerifiers = {};
+
+// ----------------------
+// UTILITY FUNCTIONS
+// ----------------------
+const generateRandomString = (length) => {
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from(crypto.randomBytes(length)).map(x => possible[x % possible.length]).join("");
+};
+
+const sha256 = (plain) => crypto.createHash("sha256").update(plain).digest();
+const base64encode = (buffer) =>
+  buffer.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 
 // ----------------------
 // LOGIN ROUTE
 // ----------------------
-// This route just redirects the user to Spotify's authorization page
-// The client should generate the code_verifier and compute the code_challenge
-// Then open this URL in a browser or WebView
+// Client hits this to start login flow
 app.get("/login", (req, res) => {
-  const { code_challenge, scope = "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state", state } = req.query;
+  const scope = "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
 
-  if (!code_challenge) {
-    return res.status(400).send("Missing code_challenge. Client must provide code_challenge.");
-  }
+  // Generate a new code_verifier and code_challenge for this login attempt
+  const codeVerifier = generateRandomString(64);
+  const codeChallenge = base64encode(sha256(codeVerifier));
 
+  // Generate a unique loginId and store the code_verifier in memory
+  const loginId = generateRandomString(16);
+  loginVerifiers[loginId] = codeVerifier;
+
+  // Build Spotify authorization URL
   const queryParams = new URLSearchParams({
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID,
     scope,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
     code_challenge_method: "S256",
-    code_challenge, // must match the code_verifier on client
-    state: state || "" // optional state for CSRF protection
+    code_challenge,
+    state: loginId // pass loginId in state for callback
   });
 
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}`);
@@ -58,21 +79,26 @@ app.get("/login", (req, res) => {
 // ----------------------
 // CALLBACK ROUTE
 // ----------------------
-// This route exchanges the authorization code for access and refresh tokens
-// It expects the client to POST or GET with:
-//   - code: returned by Spotify
-//   - code_verifier: original code_verifier used to compute code_challenge
+// Spotify redirects here after user authorizes
+// Expects ?code=...&state=loginId
 app.get("/callback", async (req, res) => {
-  const code = req.query.code;
-  const codeVerifier = req.query.code_verifier; // must come from client
-  const state = req.query.state || "";
+  const { code, state: loginId } = req.query;
 
-  if (!code || !codeVerifier) {
-    return res.status(400).send("Missing code or code_verifier. The client must provide code_verifier.");
+  if (!code || !loginId) {
+    return res.status(400).send("Missing code or state/loginId");
   }
 
+  // Retrieve the original code_verifier using loginId
+  const codeVerifier = loginVerifiers[loginId];
+  if (!codeVerifier) {
+    return res.status(400).send("Invalid or expired loginId");
+  }
+
+  // Remove it immediately to prevent reuse
+  delete loginVerifiers[loginId];
+
   try {
-    // Build form data for token exchange
+    // Exchange the code for access & refresh tokens
     const body = new URLSearchParams({
       client_id: process.env.SPOTIFY_CLIENT_ID,
       grant_type: "authorization_code",
@@ -101,8 +127,8 @@ app.get("/callback", async (req, res) => {
       return res.status(500).send(JSON.stringify(tokenData));
     }
 
-    // Redirect back to Expo deep link with access and refresh tokens
-    res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}&state=${state}`);
+    // Redirect back to Expo deep link with tokens
+    res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
   } catch (err) {
     console.error("Callback fetch error:", err);
     res.status(500).send("Error exchanging code for token :(");
@@ -123,7 +149,6 @@ function requireToken(req, res, next) {
   next();
 }
 
-// GET /me
 app.get("/me", requireToken, async (req, res) => {
   try {
     const response = await fetch("https://api.spotify.com/v1/me", {
@@ -136,7 +161,6 @@ app.get("/me", requireToken, async (req, res) => {
   }
 });
 
-// GET /top-artists
 app.get("/top-artists", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -150,7 +174,6 @@ app.get("/top-artists", requireToken, async (req, res) => {
   }
 });
 
-// GET /top-tracks
 app.get("/top-tracks", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -164,7 +187,6 @@ app.get("/top-tracks", requireToken, async (req, res) => {
   }
 });
 
-// GET /playlists
 app.get("/playlists", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -178,7 +200,6 @@ app.get("/playlists", requireToken, async (req, res) => {
   }
 });
 
-// GET /recently-played
 app.get("/recently-played", requireToken, async (req, res) => {
   try {
     const response = await fetch(
