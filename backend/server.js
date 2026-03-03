@@ -50,46 +50,46 @@ app.post("/callback", async (req, res) => {
   //const code = req.query.code;
   //const { code, codeVerifier } = req.body;//new
   const code = req.query.code;
-  const codeVerifier = req.query.codeVerifier;
+  //const codeVerifier = req.query.codeVerifier;
 
   if (!code) return res.status(400).send("Missing code");
 
   
   try {
-    const body = new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-      code_verifier: codeVerifier,
-    }).toString();
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        //code_verifier: codeVerifier,
+      }).toString();
 
 
-    const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        Authorization:
-          "Basic " +
-          Buffer.from(
-            process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
-          ).toString("base64"),
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: body,
-    });
+      const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+          Authorization:
+            "Basic " +
+            Buffer.from(
+              process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
+            ).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body,
+      });
 
-    const tokenData = await tokenResponse.json();
-    console.log("Spotify token response:", tokenData);
+      const tokenData = await tokenResponse.json();
+      console.log("Spotify token response:", tokenData);
 
-    if (tokenData.error) {
-      console.error("Spotify token error:", tokenData);
-      return res.status(500).send(JSON.stringify(tokenData));
-    }
+      if (tokenData.error) {
+        console.error("Spotify token error:", tokenData);
+        return res.status(500).send(JSON.stringify(tokenData));
+      }
 
-    // Redirect to Expo app deep link
-    res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
+      // Redirect to Expo app deep link
+      res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
   } catch (err) {
-    console.error("Callback fetch error:", err);
-    res.status(500).send("Error exchanging code for token :(");
+      console.error("Callback fetch error:", err);
+      res.status(500).send("Error exchanging code for token :(");
   }
 });
 
