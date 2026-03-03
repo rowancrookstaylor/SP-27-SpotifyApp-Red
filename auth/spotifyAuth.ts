@@ -27,9 +27,9 @@ export function useSpotifyAuth() {
                     'user-read-recently-played',
                     'user-read-playback-state',
                 ],
-                redirectUri, // pass it here
+                redirectUri, 
                 responseType: AuthSession.ResponseType.Code,
-                usePKCE: false,
+                usePKCE: true,
             },
             discovery
         );
