@@ -10,10 +10,7 @@ const discovery = {
 };
 
 export function useSpotifyAuth() {
-    const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'spotifyapp', 
-        
-    });
+    const redirectUri = 'https://sp-27-spotifyapp-red.onrender.com/callback';
 
 
     console.log('Redirect URI:', redirectUri);
