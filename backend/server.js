@@ -45,7 +45,7 @@ app.get("/login", (req, res) => {
 });
 
 // ---------- CALLBACK ROUTE ----------
-app.post("/callback", async (req, res) => {
+app.get("/callback", async (req, res) => {
   //const code = req.query.code;
   //const { code, codeVerifier } = req.body;//new
   const code = req.query.code;
