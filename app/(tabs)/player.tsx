@@ -1,8 +1,13 @@
 // app/tabs/index.tsx
 //import { IconSymbol } from '@/components/ui/icon-symbol';
 //import * as AuthSession from 'expo-auth-session';
-import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Button,
+    Easing, Image, ScrollView,
+    StyleSheet, Text, View
+} from 'react-native';
 import { useSpotify } from '../../context/SpotifyContext';
 
 type playbackState = {
@@ -65,20 +70,16 @@ type playbackState = {
 };
 
 export default function Player() {
-    //const { request, response, promptAsync, redirectUri } =
-        //useSpotifyAuth();
-
-    //const [user, setUser] = useState<any>(null);
     const { token, setToken } = useSpotify();
 
     const [playbackState, setPlaybackState] = useState<playbackState | null>(null);
+    const [playingTrack, setPlayingTrack] = useState<any | null>(null);
 
-    //fetch functions
-    useEffect(() => {
+    const Refresh = async () => {
         if (!token) return;
 
-        // Playback State
-        fetch('https://api.spotify.com/v1/me/player', {
+        try {
+            fetch('https://api.spotify.com/v1/me/player', {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(async res => {
@@ -88,28 +89,115 @@ export default function Player() {
             .then(data => setPlaybackState(data))
             .catch(err => console.error(err));
 
-        
+        fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+            headers: {Authorization: `Bearer ${token}`},
+        })
+            .then(async res => {
+                if (res.status === 204) return null;
+                return res.json();
+            })
+            .then (data => setPlayingTrack(data))
+            .catch(err => console.error(err))
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
+    //fetch functions
+    useEffect(() => {
+        if(!token) return;
+
+        Refresh();
+
+        const interval = setInterval(Refresh, 5000);
+
+        return () => clearInterval(interval);
     }, [token]);
+
+
+    //Animate Record
+    const spinValue = useRef(new Animated.Value(0)).current;
+    const spin = () => {
+        spinValue.setValue(0);
+        Animated.timing(
+            spinValue, {
+                toValue: 1,
+                duration: 3000,
+                easing: Easing.linear,
+                useNativeDriver: true,
+            }
+        ).start(() => spin());
+    };
+    useEffect(() => {
+        spin();
+    }, []);
+
+    const rotate = spinValue.interpolate({
+        inputRange: [0,1],
+        outputRange: ['0deg','360deg']
+    });
+    const animatedStyle = {
+        transform: [{ rotate }]
+    };
+
 
   return (
       <View style={{ flex: 1, backgroundColor: 'black' }}>
-          <ScrollView style={{ marginTop: 50 }}>
-              <Text style={styles.text }>
+        
+          <ScrollView contentContainerStyle={{marginTop:50}}>
+                <Text style={styles.text }>
                   {playbackState
                       ? playbackState.is_playing
                           ? "Currently Playing"
                           : "Paused"
-                      : "No active playback"}
-              </Text>
-              <Text style={styles.text }>
+                      : "No active playback"    }
+                </Text>
+                
+                <Text style={styles.text }>
                   {playbackState
                       ? playbackState.item.name
-                      : "No Playback"
+                      : "No Playback"   }
+                </Text>
 
-}
-              </Text>
+                <Button title="Refresh" onPress={Refresh} />
 
+                <View style={styles.record}>
+                    {playbackState
+                      ? playbackState.is_playing
+                          ? <Animated.Image
+                              style={[styles.recordImage, animatedStyle]} 
+                              source={require('../../assets/images/recordbase.png')}  
+                          />
+                          : <Image
+                              style={[styles.recordImage]} 
+                              source={require('../../assets/images/recordbase.png')}
+                          />
+                      : <Image
+                            style={[styles.recordImage]} 
+                            source={require('../../assets/images/recordbase.png')}
+                      />
+                    }
+                    {playbackState
+                      ? playbackState.is_playing
+                          ? <Animated.Image
+                              key={playingTrack?.item?.id}
+                              style={[styles.albumArt, animatedStyle]}
+                              source={{uri: playingTrack?.item?.album?.images[0]?.url}} 
+                          />
+                          : <Image
+                              style={[styles.recordImage]} 
+                              source={require('../../assets/images/recordcenter.png')}
+                          />
+                      : <Image
+                            style={[styles.recordImage]} 
+                            source={require('../../assets/images/recordcenter.png')}
+                      />
+                    }
+                    <Image
+                    style={styles.recordMiddle}
+                    source={require('../../assets/images/recordcenter.png')}
+                    />    
+                </View>
           </ScrollView>
 
 
@@ -124,6 +212,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',       // center vertically
     alignItems: 'center',           // center horizontally
     width: '100%',
+    marginTop: 50,
   },
   element:{
     backgroundColor: '#292929',
@@ -153,6 +242,35 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
 
+  },
+  record: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  recordImage: {
+    width: 300,
+    height: 300,
+    flex: 1,
+    zIndex: 1,
+    position: 'absolute'
+    
+  },
+  albumArt: {
+    width: 100,
+    height: 100,
+    zIndex: 2,
+    borderRadius: 50,
+    position: 'absolute',
+  },
+  recordMiddle: {
+    width: 300,
+    height: 300,
+    borderRadius: 10,
+    zIndex: 3,
+    position: 'absolute',
   }
 
 });
