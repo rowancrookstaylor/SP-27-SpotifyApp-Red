@@ -32,7 +32,7 @@ if (!process.env.SPOTIFY_CLIENT_ID ||
 const app = express();
 app.use(cors());
 app.use(express.json());
-//hello
+
 const PORT = process.env.PORT || 8081;
 
 // ---------- LOGIN ROUTE ----------
