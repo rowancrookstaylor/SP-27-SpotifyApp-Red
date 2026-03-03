@@ -70,14 +70,12 @@ app.get("/login", (req, res) => {
 
 // ---------- CALLBACK ROUTE ----------
 app.get("/callback", async (req, res) => {
-  const { code, state: loginId } = req.query;
+  const code = req.query.code;
+  const codeVerifier = req.query.code_verifier; // client must send this
 
-  if (!code || !loginId || !codeVerifiers[loginId]) {
-    return res.status(400).send("Missing code or invalid state/loginId");
+  if (!code || !codeVerifier) {
+    return res.status(400).send("Missing code or code_verifier");
   }
-
-  const codeVerifier = codeVerifiers[loginId];
-  delete codeVerifiers[loginId]; // clean up
 
   try {
     const body = new URLSearchParams({
@@ -108,7 +106,6 @@ app.get("/callback", async (req, res) => {
       return res.status(500).send(JSON.stringify(tokenData));
     }
 
-    // Redirect to Expo deep link
     res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
   } catch (err) {
     console.error("Callback fetch error:", err);
