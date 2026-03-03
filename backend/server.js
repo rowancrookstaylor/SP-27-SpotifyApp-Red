@@ -39,18 +39,18 @@ const generateRandomString = (length) => {
 
 const codeVerifier  = generateRandomString(64);
 
-const sha256 = async (plain) => {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(plain)
-  return window.crypto.subtle.digest('SHA-256', data)
-}
 
-const base64encode = (input) => {
-  return btoa(String.fromCharCode(...new Uint8Array(input)))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-}
+import crypto from "crypto";
+const sha256 = (plain) => {
+  return crypto.createHash("sha256").update(plain).digest();
+};
+
+const base64encode = (buffer) => {
+  return buffer.toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+};
 
 const hashed = await sha256(codeVerifier)
 const codeChallenge = base64encode(hashed);
@@ -64,7 +64,8 @@ const codeChallenge = base64encode(hashed);
 app.get("/login", (req, res) => {
   const scope = "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
 
-  window.localStorage.setItem('code_verifier', codeVerifier);
+  //window.localStorage.setItem('code_verifier', codeVerifier);
+  
 
   const queryParams = new URLSearchParams({
     response_type: "code",
@@ -115,6 +116,8 @@ app.get("/callback", async (req, res) => {
         },
         body: body,
       });
+
+      //localStorage.setItem('access_token', response.access_token)
 
       const tokenData = await tokenResponse.json();
       console.log("Spotify token response:", tokenData);
