@@ -46,6 +46,8 @@ app.get("/callback", async (req, res) => {
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
     }).toString();
 
+    console.log(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET)
+
     const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
