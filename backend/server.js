@@ -13,9 +13,9 @@ import fetch from "node-fetch";
 import { fileURLToPath } from "url";
 
 
-
-
-// ---------- VERIFY ENV ----------
+// ----------------------
+// VERIFY ENV VARIABLES
+// ----------------------
 if (!process.env.SPOTIFY_CLIENT_ID ||
     !process.env.SPOTIFY_CLIENT_SECRET ||
     !process.env.SPOTIFY_REDIRECT_URI) {
@@ -29,10 +29,16 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 8081;
 
-// ---------- IN-MEMORY STORAGE ----------
-const codeVerifiers = {}; // { [loginId]: codeVerifier }
+// ----------------------
+// IN-MEMORY STORE FOR LOGIN PKCE
+// ----------------------
+// Maps loginId -> code_verifier
+// Works for dev/testing; for production use a persistent store like Redis
+const loginVerifiers = {};
 
-// ---------- UTILS ----------
+// ----------------------
+// UTILITY FUNCTIONS
+// ----------------------
 const generateRandomString = (length) => {
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const values = crypto.randomBytes(length);
@@ -43,18 +49,23 @@ const sha256 = (plain) => crypto.createHash("sha256").update(plain).digest();
 const base64encode = (buffer) =>
   buffer.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 
-// ---------- LOGIN ROUTE ----------
+// ----------------------
+// LOGIN ROUTE
+// ----------------------
 app.get("/login", (req, res) => {
   const scope = "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
 
-  // generate per-login code verifier & challenge
+  // Generate a new code_verifier for this login attempt
   const codeVerifier = generateRandomString(64);
   const codeChallenge = base64encode(sha256(codeVerifier));
 
-  // generate a login ID to track this verifier
+  // Generate a unique login ID to track this login attempt
   const loginId = generateRandomString(16);
-  codeVerifiers[loginId] = codeVerifier;
 
+  // Store the code_verifier temporarily
+  loginVerifiers[loginId] = codeVerifier;
+
+  // Build Spotify authorization URL
   const queryParams = new URLSearchParams({
     response_type: "code",
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -62,22 +73,33 @@ app.get("/login", (req, res) => {
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    state: encodeURIComponent(codeVerifier) // pass loginId so we can retrieve verifier later
+    state: loginId // send loginId in state for callback
   });
 
-  res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}&state=<url-encoded codeVerifier>`);
+  // Redirect the user to Spotify login
+  res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}`);
 });
 
-// ---------- CALLBACK ROUTE ----------
+// ----------------------
+// CALLBACK ROUTE
+// ----------------------
 app.get("/callback", async (req, res) => {
-  const code = req.query.code;
-  const codeVerifier = decodeURIComponent(req.query.state);
+  const { code, state: loginId } = req.query;
 
-  if (!code || !codeVerifier) {
-    return res.status(400).send("Missing code or code_verifier");
+  if (!code || !loginId) {
+    return res.status(400).send("Missing code or state/loginId");
   }
 
+  const codeVerifier = loginVerifiers[loginId];
+  if (!codeVerifier) {
+    return res.status(400).send("Invalid or expired loginId");
+  }
+
+  // Once we retrieve it, remove it from memory to prevent reuse
+  delete loginVerifiers[loginId];
+
   try {
+    // Exchange the authorization code for access and refresh tokens
     const body = new URLSearchParams({
       client_id: process.env.SPOTIFY_CLIENT_ID,
       grant_type: "authorization_code",
@@ -106,6 +128,7 @@ app.get("/callback", async (req, res) => {
       return res.status(500).send(JSON.stringify(tokenData));
     }
 
+    // Redirect back to Expo deep link with tokens
     res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
   } catch (err) {
     console.error("Callback fetch error:", err);
@@ -113,17 +136,20 @@ app.get("/callback", async (req, res) => {
   }
 });
 
-// ---------- PROTECTED ROUTES ----------
+// ----------------------
+// PROTECTED ROUTES
+// ----------------------
 function requireToken(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).send("Missing Authorization header");
+
   const token = auth.split(" ")[1];
   if (!token) return res.status(401).send("Missing token");
+
   req.token = token;
   next();
 }
 
-// GET /me
 app.get("/me", requireToken, async (req, res) => {
   try {
     const response = await fetch("https://api.spotify.com/v1/me", {
@@ -136,7 +162,6 @@ app.get("/me", requireToken, async (req, res) => {
   }
 });
 
-// GET /top-artists
 app.get("/top-artists", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -150,7 +175,6 @@ app.get("/top-artists", requireToken, async (req, res) => {
   }
 });
 
-// GET /top-tracks
 app.get("/top-tracks", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -164,7 +188,6 @@ app.get("/top-tracks", requireToken, async (req, res) => {
   }
 });
 
-// GET /playlists
 app.get("/playlists", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -178,7 +201,6 @@ app.get("/playlists", requireToken, async (req, res) => {
   }
 });
 
-// GET /recently-played
 app.get("/recently-played", requireToken, async (req, res) => {
   try {
     const response = await fetch(
@@ -192,5 +214,9 @@ app.get("/recently-played", requireToken, async (req, res) => {
   }
 });
 
-// ---------- START SERVER ----------
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ----------------------
+// START SERVER
+// ----------------------
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
