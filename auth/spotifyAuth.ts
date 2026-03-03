@@ -1,6 +1,5 @@
 // auth/spotifyAuth.ts
-import dotenv from "dotenv";
-dotenv.config();
+
 
 import * as AuthSession from 'expo-auth-session';
 

@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+
 
 import * as Linking from "expo-linking";
 import React, { useEffect, useState } from 'react';
