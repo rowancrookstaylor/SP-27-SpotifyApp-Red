@@ -62,16 +62,16 @@ app.get("/login", (req, res) => {
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
     redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    state: loginId // pass loginId so we can retrieve verifier later
+    state: encodeURIComponent(codeVerifier) // pass loginId so we can retrieve verifier later
   });
 
-  res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}`);
+  res.redirect(`https://accounts.spotify.com/authorize?${queryParams.toString()}&state=<url-encoded codeVerifier>`);
 });
 
 // ---------- CALLBACK ROUTE ----------
 app.get("/callback", async (req, res) => {
   const code = req.query.code;
-  const codeVerifier = req.query.code_verifier; // client must send this
+  const codeVerifier = decodeURIComponent(req.query.state);
 
   if (!code || !codeVerifier) {
     return res.status(400).send("Missing code or code_verifier");
