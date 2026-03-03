@@ -54,22 +54,21 @@ app.get("/callback", async (req, res) => {
   });
 
   try {
-    const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+    const response = await fetch("https://accounts.spotify.com/api/token", {
   method: "POST",
   headers: {
-    "Authorization": "Basic " + Buffer.from(
-      process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
-    ).toString("base64"),
+    Authorization:
+      "Basic " +
+      Buffer.from(
+        process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
+      ).toString("base64"),
     "Content-Type": "application/x-www-form-urlencoded",
   },
-  body: new URLSearchParams({
-    grant_type: "authorization_code",
-    code: code,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-  }).toString(),
+  body: body,
 });
 
-    const data = await response.json();
+const data = await response.json();
+console.log("Spotify token response:", data);
 
     // Redirect to app with access & refresh token
     res.redirect(`spotifyapp://?access_token=${data.access_token}&refresh_token=${data.refresh_token}`);
