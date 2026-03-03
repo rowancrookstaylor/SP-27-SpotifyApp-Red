@@ -46,15 +46,19 @@ app.get("/login", (req, res) => {
 });
 
 // ---------- CALLBACK ROUTE ----------
-app.get("/callback", async (req, res) => {
-  const code = req.query.code;
+app.post("/callback", async (req, res) => {
+  //const code = req.query.code;
+  const { code, codeVerifier } = req.body;//new
+
   if (!code) return res.status(400).send("Missing code");
 
+  
   try {
     const body = new URLSearchParams({
       grant_type: "authorization_code",
       code,
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+      code_verifier: codeVerifier,
     }).toString();
 
 
@@ -86,6 +90,23 @@ app.get("/callback", async (req, res) => {
     res.status(500).send("Error exchanging code for token :(");
   }
 });
+
+// ---------- whatever this is ----------
+useEffect(() => {
+  if (response?.type === "success") {
+    const { code } = response.params;
+
+    fetch(`${BASE_URL}/callback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code,
+        codeVerifier: request?.codeVerifier,
+      }),
+    });
+  }
+}, [response]);
+
 
 // ---------- PROTECTED ROUTES ----------
 
