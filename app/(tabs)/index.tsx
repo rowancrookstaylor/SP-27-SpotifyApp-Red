@@ -1,7 +1,7 @@
+import * as Linking from "expo-linking";
 import React, { useEffect, useState } from 'react';
 import { Button, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-//import { useSpotifyAuth } from '../../auth/spotifyAuth';
-import * as Linking from "expo-linking";
+import { useSpotifyAuth } from '../../auth/spotifyAuth';
 import { useSpotify } from "../../context/SpotifyContext";
 
 const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com"; // <-- CHANGE THIS
@@ -24,6 +24,8 @@ type Track = {
 export default function Home() {
 
     const { token, setToken } = useSpotify();
+
+    const { request, response, promptAsync, redirectUri } = useSpotifyAuth();
 
     const [user, setUser] = useState<any>(null);
     const [topArtists, setTopArtists] = useState<any[]>([]);
@@ -98,10 +100,9 @@ export default function Home() {
                 {!user ? (
                     <View style={{ marginTop: 100 }}>
                         <Button
-                            title="Login with Spotify"
-                            onPress={() =>
-                                Linking.openURL(`${BASE_URL}/login`)
-                            }
+                        title="Login with Spotify"
+                        disabled={!request}
+                         onPress={() => promptAsync()}
                         />
                     </View>
                 ) : (
