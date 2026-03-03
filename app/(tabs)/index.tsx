@@ -4,7 +4,7 @@ import { Button, Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import * as Linking from "expo-linking";
 import { useSpotify } from "../../context/SpotifyContext";
 
-const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com/callback"; // <-- CHANGE THIS
+const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com"; // <-- CHANGE THIS
 
 type Artist = {
     name: string;
