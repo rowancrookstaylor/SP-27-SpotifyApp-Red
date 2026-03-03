@@ -7,6 +7,13 @@ import fetch from "node-fetch";
 
 dotenv.config();
 
+if (!process.env.SPOTIFY_CLIENT_ID ||
+    !process.env.SPOTIFY_CLIENT_SECRET ||
+    !process.env.SPOTIFY_REDIRECT_URI) {
+  console.error("⚠️ Missing Spotify env vars!");
+  process.exit(1);
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
