@@ -1,6 +1,7 @@
 // backend/server.js
 import dotenv from "dotenv";
 import path from 'path';
+import { useEffect } from 'react';
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
