@@ -1,11 +1,13 @@
 // backend/server.js
+import dotenv from "dotenv";
+dotenv.config();
 
 import cors from "cors";
-import dotenv from "dotenv";
+
 import express from "express";
 import fetch from "node-fetch";
 
-dotenv.config();
+
 
 if (!process.env.SPOTIFY_CLIENT_ID ||
     !process.env.SPOTIFY_CLIENT_SECRET ||
@@ -46,7 +48,6 @@ app.get("/callback", async (req, res) => {
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
     }).toString();
 
-    console.log(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET)
 
     const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
