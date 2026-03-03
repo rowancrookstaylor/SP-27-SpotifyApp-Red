@@ -22,3 +22,6 @@ Text file for saving code snippets so I don't have to undo or retype it to go ba
     />
 ```
 
+```tsx
+await AsyncStorage.setItem('spotify_token', tokenData.access_token);
+```

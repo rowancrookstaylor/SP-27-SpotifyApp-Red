@@ -11,7 +11,7 @@ import {
 import { useSpotify } from '../../context/SpotifyContext';
 
 
-const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com/callback"; // <-- CHANGE THIS
+const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com"; // <-- CHANGE THIS
 
 
 type playbackState = {

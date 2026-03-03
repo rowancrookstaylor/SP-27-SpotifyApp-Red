@@ -2,6 +2,7 @@
 
 const CLIENT_ID = '9757040e89904a92871a38381243d8e8';
 
+/*
 export async function exchangeCodeForToken(
     code: string,
     redirectUri: string,
@@ -26,6 +27,7 @@ export async function exchangeCodeForToken(
 
     return response.json();
 }
+    */
 
 export async function getUserProfile(token: string) {
     const response = await fetch(
@@ -40,6 +42,7 @@ export async function getUserProfile(token: string) {
     return response.json();
 }
 
+/*
 export async function refreshAccessToken(refreshToken: string) {
     const response = await fetch(
         'https://accounts.spotify.com/api/token',
@@ -58,4 +61,5 @@ export async function refreshAccessToken(refreshToken: string) {
 
     return response.json();
 }
+    */
 
