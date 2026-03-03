@@ -93,7 +93,7 @@ export default function Home() {
 
     }, [token]);
 
-    console.log(process.env.SPOTIFY_CLIENT_ID, process.env.SPOTIFY_CLIENT_SECRET)
+    
 
     return (
         <View style={{ flex: 1, backgroundColor: 'black' }}>
