@@ -54,18 +54,20 @@ app.get("/callback", async (req, res) => {
   });
 
   try {
-    const response = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        Authorization:
-          "Basic " +
-          Buffer.from(
-            process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
-          ).toString("base64"),
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body,
-    });
+    const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+  method: "POST",
+  headers: {
+    "Authorization": "Basic " + Buffer.from(
+      process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
+    ).toString("base64"),
+    "Content-Type": "application/x-www-form-urlencoded",
+  },
+  body: new URLSearchParams({
+    grant_type: "authorization_code",
+    code: code,
+    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+  }).toString(),
+});
 
     const data = await response.json();
 
