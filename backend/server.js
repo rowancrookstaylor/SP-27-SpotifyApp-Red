@@ -82,14 +82,16 @@ app.get("/login", (req, res) => {
 
 // ------------------------------------
 
-const urlParams = new URLSearchParams(window.location.search);
-let code = urlParams.get('code');
+//const urlParams = new URLSearchParams(window.location.search);
+//let code = urlParams.get('code');
+
+
 
 // ---------- CALLBACK ROUTE ----------
 app.get("/callback", async (req, res) => {
   
-  //const code = req.query.code;
-  const codeVerifier = localStorage.getItem('code_verifier');
+  const code = req.query.code;
+  //const codeVerifier = codeVerifier;
 
   if (!code) return res.status(400).send("Missing code");
   if (!codeVerifier) return res.status(400).send("Missing verifier");
