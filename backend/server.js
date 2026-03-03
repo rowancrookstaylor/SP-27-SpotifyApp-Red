@@ -16,9 +16,7 @@ if (!process.env.SPOTIFY_CLIENT_ID ||
   process.exit(1);
 }
 
-console.log("CLIENT_ID:", process.env.SPOTIFY_CLIENT_ID);
-console.log("CLIENT_SECRET:", process.env.SPOTIFY_CLIENT_SECRET ? "[HIDDEN]" : "MISSING");
-console.log("REDIRECT_URI:", process.env.SPOTIFY_REDIRECT_URI);
+
 
 const app = express();
 app.use(cors());
