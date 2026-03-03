@@ -12,9 +12,7 @@ const discovery = {
 export function useSpotifyAuth() {
     const redirectUri = 'https://sp-27-spotifyapp-red.onrender.com/callback';
 
-console.log("CLIENT_ID:", process.env.SPOTIFY_CLIENT_ID ? "[HIDDEN]" : "MISSING");
-console.log("CLIENT_SECRET:", process.env.SPOTIFY_CLIENT_SECRET ? "[HIDDEN]" : "MISSING");
-console.log("REDIRECT_URI:", process.env.SPOTIFY_REDIRECT_URI ? '[HIDDEN' : "MISSING");
+
     
 
     const [request, response, promptAsync] =

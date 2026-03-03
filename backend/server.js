@@ -74,10 +74,13 @@ app.get("/callback", async (req, res) => {
     const tokenData = await tokenResponse.json();
     console.log("Spotify token response:", tokenData);
 
-    if (tokenData.error) {
-      console.error("Spotify token error:", tokenData);
-      return res.status(500).send("Error getting token from Spotify");
-    }
+    console.log("FULL TOKEN RESPONSE:", tokenData);
+
+if (tokenData.error) {
+  return res.status(500).send(
+    "Spotify error: " + JSON.stringify(tokenData)
+  );
+}
 
     // Redirect to Expo app deep link
     res.redirect(`spotifyapp://?access_token=${tokenData.access_token}&refresh_token=${tokenData.refresh_token}`);
