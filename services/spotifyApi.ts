@@ -39,3 +39,23 @@ export async function getUserProfile(token: string) {
 
     return response.json();
 }
+
+export async function refreshAccessToken(refreshToken: string) {
+    const response = await fetch(
+        'https://accounts.spotify.com/api/token',
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                client_id: CLIENT_ID,
+                grant_type: 'refresh_token',
+                refresh_token: refreshToken,
+            }).toString(),
+        }
+    );
+
+    return response.json();
+}
+

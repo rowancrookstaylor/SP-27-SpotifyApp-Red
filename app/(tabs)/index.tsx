@@ -1,11 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
-import { View, Button, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { Button, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSpotifyAuth } from '../../auth/spotifyAuth';
+import { useSpotify } from "../../context/SpotifyContext";
 import {
     exchangeCodeForToken,
     getUserProfile,
+    refreshAccessToken
 } from '../../services/spotifyApi';
-import { useSpotify } from '../../context/SpotifyContext';
 
 type Artist = {
     name: string;
@@ -44,13 +46,20 @@ export default function Home() {
                     request?.codeVerifier!
                 );
 
-                const profile = await getUserProfile(
-                    tokenData.access_token
-                );
+                const expirationTime =
+                    Date.now() + tokenData.expires_in * 1000;
 
+                await AsyncStorage.multiSet([
+                    ['spotify_access_token', tokenData.access_token],
+                    ['spotify_refresh_token', tokenData.refresh_token],
+                    ['spotify_expiration', expirationTime.toString()],
+                ]);
+
+                setToken(tokenData.access_token);
+
+                const profile = await getUserProfile(tokenData.access_token);
                 setUser(profile);
-                setToken(tokenData.access_token)
-            }
+}
         };
 
         handleAuth();
@@ -103,7 +112,69 @@ export default function Home() {
 
     }, [token]);
 
-    
+    //refresh login
+    useEffect(() => {
+    const initializeAuth = async () => {
+        const values = await AsyncStorage.multiGet([
+            'spotify_access_token',
+            'spotify_refresh_token',
+            'spotify_expiration',
+        ]);
+
+        const accessToken = values[0][1];
+        const refreshToken = values[1][1];
+        const expiration = values[2][1];
+
+        if (!accessToken || !refreshToken || !expiration) return;
+
+        const isExpired =
+            Date.now() > Number(expiration) - 60000;
+
+        let validToken = accessToken;
+
+        if (isExpired) {
+            try {
+                const newTokenData =
+                    await refreshAccessToken(refreshToken);
+
+                const newExpiration =
+                    Date.now() + newTokenData.expires_in * 1000;
+
+                await AsyncStorage.multiSet([
+                    ['spotify_access_token', newTokenData.access_token],
+                    ['spotify_expiration', newExpiration.toString()],
+                ]);
+
+                validToken = newTokenData.access_token;
+            } catch (error) {
+                console.error('Refresh failed', error);
+                return;
+            }
+        }
+
+        setToken(validToken);
+
+        const profile = await getUserProfile(validToken);
+        setUser(profile);
+    };
+
+    initializeAuth();
+}, []);   
+
+    //load token
+    useEffect(() => {
+        const loadToken = async () => {
+            const storedToken = await AsyncStorage.getItem('spotify_token');
+
+            if(storedToken) {
+                setToken(storedToken);
+                const profile = await getUserProfile(storedToken);
+                setUser(profile);
+            }
+        };
+
+        loadToken();
+    }, []);
     
 
     return (
@@ -253,13 +324,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold',
         color: 'white',
-    },
-    ttopImage: {
-        width: 50,
-        height: 50,
-        borderRadius: 25, // makes it circular
-        marginRight: 10,
-        marginLeft: 5
     },
     imageBelow: {
         alignItems: 'flex-start',

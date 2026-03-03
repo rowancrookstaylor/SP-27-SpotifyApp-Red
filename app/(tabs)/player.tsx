@@ -74,11 +74,14 @@ export default function Player() {
 
     const [playbackState, setPlaybackState] = useState<playbackState | null>(null);
     const [playingTrack, setPlayingTrack] = useState<any | null>(null);
+    const [lastTrack, setLastTrack] = useState<any | null>(null);
 
     const Refresh = async () => {
         if (!token) return;
 
         try {
+
+            //playback state
             fetch('https://api.spotify.com/v1/me/player', {
             headers: { Authorization: `Bearer ${token}` },
         })
@@ -89,7 +92,8 @@ export default function Player() {
             .then(data => setPlaybackState(data))
             .catch(err => console.error(err));
 
-        fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+            //currently playing
+            fetch('https://api.spotify.com/v1/me/player/currently-playing', {
             headers: {Authorization: `Bearer ${token}`},
         })
             .then(async res => {
@@ -97,6 +101,17 @@ export default function Player() {
                 return res.json();
             })
             .then (data => setPlayingTrack(data))
+            .catch(err => console.error(err))
+
+            //last played
+            fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+            headers: {Authorization: `Bearer ${token}`},
+        })
+            .then(async res => {
+                if (res.status === 204) return null;
+                return res.json();
+            })
+            .then (data => setLastTrack(data))
             .catch(err => console.error(err))
         } catch (err) {
             console.error(err);
@@ -152,7 +167,7 @@ export default function Player() {
                           : "Paused"
                       : "No active playback"    }
                 </Text>
-                
+
                 <Text style={styles.text }>
                   {playbackState
                       ? playbackState.item.name
@@ -185,13 +200,13 @@ export default function Player() {
                               source={{uri: playingTrack?.item?.album?.images[0]?.url}} 
                           />
                           : <Image
-                              style={[styles.recordImage]} 
-                              source={require('../../assets/images/recordcenter.png')}
+                              style={[styles.albumArt]} 
+                              source={{uri: playingTrack?.item?.album?.images[0]?.url}}
                           />
                       : <Image
-                            style={[styles.recordImage]} 
-                            source={require('../../assets/images/recordcenter.png')}
-                      />
+                              style={[styles.albumArt]} 
+                              source={{uri: lastTrack?.items?.track?.album?.images[0]?.url}}
+                          />
                     }
                     <Image
                     style={styles.recordMiddle}
