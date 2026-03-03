@@ -29,7 +29,7 @@ export function useSpotifyAuth() {
                 ],
                 redirectUri, 
                 responseType: AuthSession.ResponseType.Code,
-                usePKCE: false,
+                usePKCE: true,
             },
             discovery
         );
