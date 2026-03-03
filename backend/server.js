@@ -1,12 +1,17 @@
 // backend/server.js
 import dotenv from "dotenv";
-dotenv.config();
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 import { Buffer } from 'buffer';
 import cors from "cors";
 import express from "express";
 import fetch from "node-fetch";
 
+console.log("CLIENT_ID:", process.env.SPOTIFY_CLIENT_ID);
+console.log("CLIENT_SECRET:", process.env.SPOTIFY_CLIENT_SECRET ? "[HIDDEN]" : "MISSING");
+console.log("REDIRECT_URI:", process.env.SPOTIFY_REDIRECT_URI);
 
 
 if (!process.env.SPOTIFY_CLIENT_ID ||
