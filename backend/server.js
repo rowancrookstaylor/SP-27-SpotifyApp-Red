@@ -70,21 +70,7 @@ app.get("/callback", async (req, res) => {
       body: body,
     });
 
-    const data = await tokenResponse.json(); // ✅ use tokenResponse here
-    console.log("Spotify token response:", data);
-
-    if (data.error) {
-      console.error("Spotify token error:", data);
-      return res.status(500).send("Error getting token from Spotify");
-    }
-
-    // Redirect to app
-    res.redirect(`spotifyapp://?access_token=${data.access_token}&refresh_token=${data.refresh_token}`);
-  } catch (err) {
-    console.error("Callback fetch error:", err);
-    res.status(500).send("Error exchanging code for token");
-  }
-});
+    
 
 const data = await response.json();
 console.log("Spotify token response:", data);
