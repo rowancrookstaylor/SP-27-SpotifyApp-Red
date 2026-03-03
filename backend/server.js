@@ -15,6 +15,12 @@ const PORT = process.env.PORT || 8081;
 
 // ---------- LOGIN ROUTE ----------
 app.get("/login", (req, res) => {
+    console.log("REDIRECT URI:", process.env.SPOTIFY_REDIRECT_URI);
+
+  if (!process.env.SPOTIFY_REDIRECT_URI) {
+    return res.status(500).send("Redirect URI is undefined on backend");
+  }
+
   const scope =
     "user-read-email user-read-private user-top-read playlist-read-private user-read-recently-played user-read-playback-state";
 
