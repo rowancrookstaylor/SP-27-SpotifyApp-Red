@@ -44,27 +44,46 @@ app.get("/login", (req, res) => {
 // ---------- CALLBACK ROUTE ----------
 app.get("/callback", async (req, res) => {
   const code = req.query.code;
-
   if (!code) return res.status(400).send("Missing code");
 
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-  });
+  if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET || !process.env.SPOTIFY_REDIRECT_URI) {
+    return res.status(500).send("Spotify env variables are missing");
+  }
 
   try {
-    const response = await fetch("https://accounts.spotify.com/api/token", {
-  method: "POST",
-  headers: {
-    Authorization:
-      "Basic " +
-      Buffer.from(
-        process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
-      ).toString("base64"),
-    "Content-Type": "application/x-www-form-urlencoded",
-  },
-  body: body,
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+    }).toString();
+
+    const tokenResponse = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        Authorization:
+          "Basic " +
+          Buffer.from(
+            process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
+          ).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body,
+    });
+
+    const data = await tokenResponse.json(); // ✅ use tokenResponse here
+    console.log("Spotify token response:", data);
+
+    if (data.error) {
+      console.error("Spotify token error:", data);
+      return res.status(500).send("Error getting token from Spotify");
+    }
+
+    // Redirect to app
+    res.redirect(`spotifyapp://?access_token=${data.access_token}&refresh_token=${data.refresh_token}`);
+  } catch (err) {
+    console.error("Callback fetch error:", err);
+    res.status(500).send("Error exchanging code for token");
+  }
 });
 
 const data = await response.json();
