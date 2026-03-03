@@ -46,10 +46,9 @@ app.get("/login", (req, res) => {
 
 // ---------- CALLBACK ROUTE ----------
 app.get("/callback", async (req, res) => {
-  //const code = req.query.code;
-  //const { code, codeVerifier } = req.body;//new
+  
   const code = req.query.code;
-  //const codeVerifier = req.query.codeVerifier;
+  const codeVerifier = req.codeVerifier;
 
   if (!code) return res.status(400).send("Missing code");
 
@@ -59,7 +58,7 @@ app.get("/callback", async (req, res) => {
         grant_type: "authorization_code",
         code,
         redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-        //code_verifier: codeVerifier,
+        code_verifier: codeVerifier,
       }).toString();
 
 
