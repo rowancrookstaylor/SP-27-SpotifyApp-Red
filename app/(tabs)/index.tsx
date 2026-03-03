@@ -70,54 +70,66 @@ export default function Home() {
         ) : (
           <>
             <View style={styles.settingsBar}>
-              <Text style={styles.text}>
-                Logged in as {user?.display_name}
-              </Text>
+                            <Text style={styles.text}>
+                                Logged in as {user?.display_name}
+                            </Text>
+                        </View>
+
+                        <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false}>
+
+                            
+                            <View style={styles.element}>
+                                <Text style={styles.elementTitle}>
+                                    Your Top Artists
+                                </Text>
+
+                                <View style={styles.topRow}>
+                                    {topArtists.slice(0, 6).map((artist, index) => (
+                                        <View key={index} style={styles.topCard}>
+                                            {artist?.images?.[0]?.url && (
+                                                <Image
+                                                    source={{ uri: artist.images[0].url }}
+                                                    style={styles.topImage}
+                                                />
+                                            )}
+                                            <Text style={styles.topName}>
+                                                {artist?.name}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+
+                            
+                            <View style={styles.element}>
+                                <Text style={styles.elementTitle}>
+                                    Your Top Tracks
+                                </Text>
+
+                                <View style={styles.topRow}>
+                                    {topTracks.slice(0, 6).map((track, index) => (
+                                        <View key={index} style={styles.topCard}>
+                                            {track?.album?.images?.[0]?.url && (
+                                                <Image
+                                                    source={{ uri: track.album.images[0].url }}
+                                                    style={styles.topImage}
+                                                />
+                                            )}
+                                            <Text style={styles.topName}>
+                                                {track?.name}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+
+                        </ScrollView>
+                    </>
+                )}
+
             </View>
+        </View>
 
-            <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false}>
-
-              {/* TOP ARTISTS */}
-              <View style={styles.element}>
-                <Text style={styles.elementTitle}>Your Top Artists</Text>
-                <View style={styles.topRow}>
-                  {topArtists.slice(0, 6).map((artist, index) => (
-                    <View key={index} style={styles.topCard}>
-                      {artist?.images?.[0]?.url && (
-                        <Image
-                          source={{ uri: artist.images[0].url }}
-                          style={styles.topImage}
-                        />
-                      )}
-                      <Text style={styles.topName}>{artist?.name}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* TOP TRACKS */}
-              <View style={styles.element}>
-                <Text style={styles.elementTitle}>Your Top Tracks</Text>
-                <View style={styles.topRow}>
-                  {topTracks.slice(0, 6).map((track, index) => (
-                    <View key={index} style={styles.topCard}>
-                      {track?.album?.images?.[0]?.url && (
-                        <Image
-                          source={{ uri: track.album.images[0].url }}
-                          style={styles.topImage}
-                        />
-                      )}
-                      <Text style={styles.topName}>{track?.name}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-            </ScrollView>
-          </>
-        )}
-      </View>
-    </View>
   );
 }
 
