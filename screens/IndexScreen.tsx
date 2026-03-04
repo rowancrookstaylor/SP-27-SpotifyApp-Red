@@ -1,26 +1,31 @@
-// src/screens/IndexScreen.tsx
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { Button, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Button, Text, View } from 'react-native';
 import { useSpotifyAuth } from '../auth/useSpotifyAuth';
+import { useSpotify } from '../context/SpotifyContext';
 
 export default function IndexScreen() {
+  const { accessToken } = useSpotify();
   const { login } = useSpotifyAuth();
-  const router = useRouter();
+  const [userName, setUserName] = useState('');
 
-  const handleLogin = async () => {
-    await login();
-    // Navigate to root index page after login
-    router.replace('/'); // '/' is your index
-  };
+  useEffect(() => {
+    if (!accessToken) return;
+
+    fetch(`https://YOUR_RENDER_BACKEND_URL/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setUserName(data.display_name))
+      .catch(console.error);
+  }, [accessToken]);
 
   return (
-    <View style={styles.container}>
-      <Button title="Login with Spotify" onPress={handleLogin} />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      {!accessToken ? (
+        <Button title="Login with Spotify" onPress={login} />
+      ) : (
+        <Text>Logged in as: {userName}</Text>
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-});

@@ -1,7 +1,6 @@
 // app/tabs/index.tsx
 //import { IconSymbol } from '@/components/ui/icon-symbol';
 //import * as AuthSession from 'expo-auth-session';
-/*
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
@@ -10,10 +9,6 @@ import {
     StyleSheet, Text, View
 } from 'react-native';
 import { useSpotify } from '../../context/SpotifyContext';
-
-
-const BASE_URL = "https://sp-27-spotifyapp-red.onrender.com"; // <-- CHANGE THIS
-
 
 type playbackState = {
     device: {
@@ -85,41 +80,54 @@ export default function Player() {
         if (!token) return;
 
         try {
-            // Playback state
-            const playbackRes = await fetch(`${BASE_URL}/player`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const playbackData = playbackRes.status === 204 ? null : await playbackRes.json();
-            setPlaybackState(playbackData);
 
-            // Currently playing track
-            const currentRes = await fetch(`${BASE_URL}/currently-playing`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const currentData = currentRes.status === 204 ? null : await currentRes.json();
-            setPlayingTrack(currentData);
+            //playback state
+            fetch('https://api.spotify.com/v1/me/player', {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(async res => {
+                if (res.status === 204) return null;
+                return res.json();
+            })
+            .then(data => setPlaybackState(data))
+            .catch(err => console.error(err));
 
-            // Last played track
-            const lastRes = await fetch(`${BASE_URL}/recently-played?limit=1`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const lastData = lastRes.status === 204 ? null : await lastRes.json();
-            setLastTrack(lastData);
+            //currently playing
+            fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+            headers: {Authorization: `Bearer ${token}`},
+        })
+            .then(async res => {
+                if (res.status === 204) return null;
+                return res.json();
+            })
+            .then (data => setPlayingTrack(data))
+            .catch(err => console.error(err))
+
+            //last played
+            fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+            headers: {Authorization: `Bearer ${token}`},
+        })
+            .then(async res => {
+                if (res.status === 204) return null;
+                return res.json();
+            })
+            .then (data => setLastTrack(data))
+            .catch(err => console.error(err))
         } catch (err) {
             console.error(err);
         }
-    };
+    }
 
-    // ---------- FETCH DATA ON TOKEN ----------
+    //fetch functions
     useEffect(() => {
-        if (!token) return;
+        if(!token) return;
 
         Refresh();
-        const interval = setInterval(Refresh, 5000); // refresh every 5 sec
+
+        const interval = setInterval(Refresh, 5000);
 
         return () => clearInterval(interval);
     }, [token]);
-
 
 
     //Animate Record
@@ -281,4 +289,3 @@ const styles = StyleSheet.create({
   }
 
 });
-*/
