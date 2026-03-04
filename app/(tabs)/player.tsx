@@ -1,6 +1,7 @@
 // app/tabs/index.tsx
 //import { IconSymbol } from '@/components/ui/icon-symbol';
 //import * as AuthSession from 'expo-auth-session';
+/*
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
@@ -280,3 +281,4 @@ const styles = StyleSheet.create({
   }
 
 });
+*/
