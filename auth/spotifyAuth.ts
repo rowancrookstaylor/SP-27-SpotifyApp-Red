@@ -1,6 +1,7 @@
 // auth/spotifyAuth.ts
 
 import * as AuthSession from 'expo-auth-session';
+import { Redirect } from 'expo-router';
 
 const CLIENT_ID = '9757040e89904a92871a38381243d8e8';
 
@@ -10,13 +11,17 @@ const discovery = {
 };
 
 export function useSpotifyAuth() {
+    
+    /*
     const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'spotifyapp', 
-        
+        native: 'spotifyapp://redirect', 
+        scheme: 'spotifyapp'
+
     });
+*/
+    const redirectUri = 'spotifyapp://redirect'
 
-
-    console.log('Redirect URI:', redirectUri);
+    console.log("")
 
     const [request, response, promptAsync] =
         AuthSession.useAuthRequest(
@@ -38,6 +43,7 @@ export function useSpotifyAuth() {
         );
 
     console.log('Redirect URI:', redirectUri); // should now print spotifyapp://redirect
+    console.log('Production URI:',)
 
     return { request, response, promptAsync, redirectUri };
 }

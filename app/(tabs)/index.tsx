@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
-import { Button, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, DevSettings, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSpotifyAuth } from '../../auth/spotifyAuth';
 import { useSpotify } from "../../context/SpotifyContext";
 import {
@@ -176,6 +176,15 @@ export default function Home() {
         loadToken();
     }, []);
     
+    const logOut = async () => {
+        try {
+            await AsyncStorage.removeItem('spotify_access_token')
+            setUser(null)
+            DevSettings.reload();
+        } catch (e) {
+            console.error('Error in method LOGOUT: ', e)
+        }
+    };
 
     return (
         <View style={{ flex: 1, backgroundColor: 'black' }}>
@@ -191,7 +200,11 @@ export default function Home() {
                 ) : (
                     <>
                         <View style={styles.settingsBar}>
-                            <Text style={styles.text}>settings bar</Text>
+                            
+                            <Button
+                            title="Log Out"
+                            onPress={logOut}
+                            />
                         </View>
 
                             <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false }>
