@@ -73,6 +73,7 @@ export default function Player() {
     const { token, setToken } = useSpotify();
 
     const [playbackState, setPlaybackState] = useState<playbackState | null>(null);
+    const [actions, setActions] = useState<any | null>(null)
     const [playingTrack, setPlayingTrack] = useState<any | null>(null);
     const [lastTrack, setLastTrack] = useState<any | null>(null);
 
@@ -91,6 +92,7 @@ export default function Player() {
             })
             .then(data => setPlaybackState(data))
             .catch(err => console.error(err));
+            setActions(playbackState?.actions)
 
             //currently playing
             fetch('https://api.spotify.com/v1/me/player/currently-playing', {
