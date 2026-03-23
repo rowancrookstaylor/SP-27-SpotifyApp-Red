@@ -4,9 +4,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
-    Button,
     Easing, Image, ScrollView,
-    StyleSheet, Text, View
+    StyleSheet, Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { useSpotify } from '../../context/SpotifyContext';
 
@@ -40,11 +41,11 @@ type playbackState = {
             name: string,
             release_date: string,
         },
-        artists: {
+        artists:[ {
             name: string,
             id: string,
             uri: string
-        }
+        }]
 
         disc_number: string,
         duration: string,
@@ -69,6 +70,7 @@ type playbackState = {
     }
 };
 
+
 export default function Player() {
     const { token, setToken } = useSpotify();
 
@@ -81,7 +83,7 @@ export default function Player() {
         if (!token) return;
 
         try {
-
+            
             //playback state
             fetch('https://api.spotify.com/v1/me/player', {
             headers: { Authorization: `Bearer ${token}` },
@@ -126,7 +128,7 @@ export default function Player() {
 
         Refresh();
 
-        const interval = setInterval(Refresh, 5000);
+        const interval = setInterval(Refresh, 3000);
 
         return () => clearInterval(interval);
     }, [token]);
@@ -157,27 +159,101 @@ export default function Player() {
         transform: [{ rotate }]
     };
 
+    const changeState = async () => {
+        if(playbackState?.is_playing){
+            try {
+                const response = await fetch('https://api.spotify.com/v1/me/player/pause', {
+                    method: 'PUT',
+                    headers: {Authorization: `Bearer ${token}`  },
+                });
+
+                
+
+                if(response.status === 204 || response.status === 200) {
+                    console.log('paused!')
+                    Refresh()
+                }
+                else {
+                    const data = await response.json().catch(() => null);
+            console.error(`Error pausing playback: ${response.status}`, data);
+                }
+            } catch (e){
+                console.error('Error pausing playback: ', e)
+            }
+        }
+        else {
+            try {
+                const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+                    method: 'PUT',
+                    headers: {Authorization: `Bearer ${token}`  },
+                });
+
+                
+
+                if(response.status === 204 || response.status === 200) {
+                    console.log('playing!')
+                    Refresh()
+                }
+                else if (!playbackState?.is_playing){
+                    console.error(`Error playing playback: ${response.status}`);
+                }
+            } catch (e){
+                console.error('Error playing playback: ', e)
+            }
+        }
+
+        Refresh()
+    }
+
+
+    const rewind = async () => {
+            try {
+                const response = await fetch('https://api.spotify.com/v1/me/player/previous', {
+                    method: 'POST',
+                    headers: {Authorization: `Bearer ${token}`  },
+                });
+
+                
+
+                if(response.status === 204 || 200) {
+                    console.log('rewind!', response.status)
+                    Refresh()
+                }
+                else if (response.status === 401 || 403 || 409){
+                    console.error(`Error rewinding playback: ${response.status}`);
+                }
+            } catch (e){
+                console.error('Error rewinding playback: ', e)
+            }
+            
+        }
+    
+    const skip = async () => {
+            try {
+                const response = await fetch('https://api.spotify.com/v1/me/player/next', {
+                    method: 'POST',
+                    headers: {Authorization: `Bearer ${token}`  },
+                });
+
+                
+
+                if(response.status === 204 || 200) {
+                    console.log('skip!', response.status)
+                    Refresh()
+                }
+                else if (response.status === 401 || 403 || 409){
+                    console.error(`Error skipping playback: ${response.status}`);
+                }
+            } catch (e){
+                console.error('Error skipping playback: ', e)
+            }
+            
+        }
 
   return (
       <View style={{ flex: 1, backgroundColor: 'black' }}>
         
-          <ScrollView contentContainerStyle={{marginTop:50}}>
-                <Text style={styles.text }>
-                  {playbackState
-                      ? playbackState.is_playing
-                          ? "Currently Playing"
-                          : "Paused"
-                      : "No active playback"    }
-                </Text>
-
-                <Text style={styles.text }>
-                  {playbackState
-                      ? playbackState.item.name
-                      : "No Playback"   }
-                </Text>
-
-                <Button title="Refresh" onPress={Refresh} />
-
+          <ScrollView contentContainerStyle={{marginTop:20}}>
                 <View style={styles.record}>
                     {playbackState
                       ? playbackState.is_playing
@@ -215,6 +291,52 @@ export default function Player() {
                     source={require('../../assets/images/recordcenter.png')}
                     />    
                 </View>
+
+                <View style={styles.currentlyPlayingBar}>
+                <Text style={styles.textCurrentSong }>
+                  {playbackState
+                      ? playbackState.item.name
+                      : "No Playback"   }
+                </Text>
+
+                <Text style={styles.textCurrentArtist }>
+                  {playbackState
+                      ? playbackState.item.artists[0].name
+                      : "No Playback"   }
+                </Text>
+                </View>
+
+                <View style={styles.playbar}>
+                    <TouchableOpacity onPress={rewind}>
+                        <Image
+                        source= {require('../../assets/images/back.png')}
+                        style={styles.playbutton}
+                        />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity onPress={changeState}>
+                    {playbackState?.is_playing
+                        ? <Image
+                          source = {require('../../assets/images/pause.png')}
+                          style = {styles.playbutton}
+                          />
+                        :
+                        <Image
+                        source = {require('../../assets/images/play.png')} 
+                        style= {styles.playbutton} 
+                        />
+                    }
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={skip}>
+                        <Image
+                            source = {require('../../assets/images/skip.png')}
+                            style= {styles.playbutton}
+                            />      
+                    </TouchableOpacity>                        
+                </View>
+                
+
           </ScrollView>
 
 
@@ -231,6 +353,18 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 50,
   },
+  playbar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 30,
+    marginTop: 30
+  },
+  playbutton: {
+    width: 70,
+    height: 70,
+    paddingHorizontal: 0
+  },
   element:{
     backgroundColor: '#292929',
     paddingVertical: 20,
@@ -244,6 +378,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginLeft: 10,
     fontWeight: 'bold',
+  },
+  currentlyPlayingBar: {
+    width: '100%',
+    marginTop: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    borderBottomEndRadius: 70,
+    paddingBottom: 10
+  },
+  textCurrentSong: {
+    color: 'white',                 
+    fontSize: 20,
+    marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  textCurrentArtist: {
+    color: 'white',                 
+    fontSize: 20,
+    marginLeft: 10,
   },
   row: {
     flexDirection: 'row',

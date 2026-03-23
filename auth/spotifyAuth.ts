@@ -34,8 +34,9 @@ export function useSpotifyAuth() {
                     'playlist-read-private',
                     'user-read-recently-played',
                     'user-read-playback-state',
+                    'user-modify-playback-state'
                 ],
-                redirectUri, // pass it here
+                redirectUri, 
                 responseType: AuthSession.ResponseType.Code,
                 usePKCE: true,
             },
@@ -43,7 +44,6 @@ export function useSpotifyAuth() {
         );
 
     console.log('Redirect URI:', redirectUri); // should now print spotifyapp://redirect
-    console.log('Production URI:',)
 
     return { request, response, promptAsync, redirectUri };
 }
