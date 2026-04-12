@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
-    borderBottomEndRadius: 70,
-    paddingBottom: 10
+    borderBottomEndRadius: 0,
+    paddingBottom: 15
   },
   textCurrentSong: {
     color: 'white',                 

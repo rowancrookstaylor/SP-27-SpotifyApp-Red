@@ -21,7 +21,7 @@ export function useSpotifyAuth() {
 */
     const redirectUri = 'spotifyapp://redirect'
 
-    console.log("")
+    
 
     const [request, response, promptAsync] =
         AuthSession.useAuthRequest(
@@ -43,7 +43,6 @@ export function useSpotifyAuth() {
             discovery
         );
 
-    console.log('Redirect URI:', redirectUri); // should now print spotifyapp://redirect
-
+    
     return { request, response, promptAsync, redirectUri };
 }
