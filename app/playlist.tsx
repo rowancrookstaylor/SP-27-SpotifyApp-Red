@@ -1,4 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   FlatList,
@@ -10,183 +11,310 @@ import {
 } from 'react-native';
 import { useSpotify } from '../context/SpotifyContext';
 
-
-type Playlist = {
-  name: string,
-  owner: {
-    display_name: string
-  },
-  description: string,
-  images: [{
-    url: string
-  }]
-  id: string,
-  total: Int32Array,
-  items: [{     
-    item: {
-      id: string,
-      is_local: boolean,
-      disc_number: string,
-      duration: string,
-      explicit: boolean,
-      name: string,
-      track_number: string,
-      type: string,
-      uri: string,
-      album: {
-            album_type: string,
-            total_tracks: Int32Array,
-            id: string,
-            images: {
-                url: string;
-            },
-            name: string,
-            release_date: string,
-        },
-        artists:[ {
-            name: string,
-            id: string,
-            uri: string
-        }]
-    }
-  }]
-}
-
 export default function PlaylistScreen() {
   const { playlistId } = useLocalSearchParams();
-  const router = useRouter();
-  const playlistUrl = 'https://api.spotify.com/v1/playlists/' + playlistId
+  const { token } = useSpotify();
 
-  const { token, setToken } = useSpotify();
-    
-  const [playingTrack, setPlayingTrack] = useState<any | null>(null);
+  const playlistUrl = 'https://api.spotify.com/v1/playlists/' + playlistId;
+
   const [playlist, setPlaylist] = useState<any | null>(null);
+  const [playingTrack, setPlayingTrack] = useState<any | null>(null);
+
+  const [menuTrackId, setMenuTrackId] = useState<string | null>(null);
+  const [skippedTracks, setSkippedTracks] = useState<string[]>([]);
 
   const Refresh = async () => {
-      if (!token) return;
+    if (!token) return;
 
-      try {
-          //currently playing
-          fetch('https://api.spotify.com/v1/me/player/currently-playing', {
-          headers: {Authorization: `Bearer ${token}`},
-          })
-          .then(async res => {
-              if (res.status === 204) return null;
-              return res.json();
-          })
-          .then (data => setPlayingTrack(data))
-          .catch(err => console.error(err))
+    try {
+      fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => (res.status === 204 ? null : res.json()))
+        .then(data => {
+          setPlayingTrack(data);
 
-          fetch(playlistUrl, {
-          headers: {Authorization: `Bearer ${token}`},
-          })
-          .then(async res => {
-              if (res.status === 204) return null;
-              return res.json();
-          })
-          .then (data => setPlaylist(data))
-          .catch(err => console.error(err))
+          const currentId = data?.item?.id;
 
-          
-      } catch (err) {
-          console.error(err);
-      }
-  }
+          if (currentId && skippedTracks.includes(currentId)) {
+            fetch('https://api.spotify.com/v1/me/player/next', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          }
+        });
 
-  //refresh fetch (every 3 seconds)
+      fetch(playlistUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => (res.status === 204 ? null : res.json()))
+        .then(data => setPlaylist(data));
+
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
-      if(!token) return;
+    if (!token) return;
 
-      Refresh();
+    Refresh();
+    const interval = setInterval(Refresh, 3000);
+    return () => clearInterval(interval);
+  }, [token, skippedTracks]);
 
-      const interval = setInterval(Refresh, 3000);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('skippedTracks');
+        if (stored) setSkippedTracks(JSON.parse(stored));
+      } catch (e) {
+        console.log('load failed');
+      }
+    };
+    load();
+  }, []);
 
-      return () => clearInterval(interval);
-  }, [token]);
+  useEffect(() => {
+    const save = async () => {
+      try {
+        await AsyncStorage.setItem('skippedTracks', JSON.stringify(skippedTracks));
+      } catch (e) {
+        console.log('save failed');
+      }
+    };
+    save();
+  }, [skippedTracks]);
+
+  const playSong = async (uri: string, id: string) => {
+    if (!token || !playlistId) return;
+
+    if (skippedTracks.includes(id)) return;
+
+    try {
+      await fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          context_uri: `spotify:playlist:${playlistId}`,
+          offset: { uri },
+          position_ms: 0,
+        }),
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const toggleSkip = (id: string) => {
+    setSkippedTracks(prev =>
+      prev.includes(id)
+        ? prev.filter(t => t !== id)
+        : [...prev, id]
+    );
+  };
 
   const pHeader = (
     <View style={styles.coverCard}>
-      <Image
-      source={{ uri:  playlist?.images?.[0]?.url}}
-          style = {styles.playlistCover}
-      />
-      <Text style={styles.playlistTitle}>
-        {playlist?.name}
-      </Text>
+      <Image source={{ uri: playlist?.images?.[0]?.url }} style={styles.playlistCover} />
+      <Text style={styles.playlistTitle}>{playlist?.name}</Text>
     </View>
-    )
-
-  const flatlist =  (
-    <FlatList
-      data={playlist?.tracks?.items}
-      keyExtractor={(item, index) => item.track?.id ?? index.toString()}
-      showsVerticalScrollIndicator={false}
-      renderItem={({ item }) => (
-      <TouchableOpacity
-        onPress={() => playSong(item.track?.id)}
-        activeOpacity={0.7}
-        style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
-      >
-        <Image
-          source={{ uri: item.track?.album?.images?.[0]?.url }}
-          style={styles.songCover}
-        />
-
-        <Text style={styles.songName}>
-          {item.track?.name}
-        </Text>
-      </TouchableOpacity>
-  )}
-  ListHeaderComponent={pHeader}
-/>
   );
-  const playSong = (songId: any) => {
-        console.log('playing song: ',songId)
-      }
 
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={playlist?.tracks?.items}
+        keyExtractor={(item, index) => item.track?.id ?? index.toString()}
+        ListHeaderComponent={pHeader}
+        renderItem={({ item }) => {
+          const track = item.track;
+          const isPlaying = playingTrack?.item?.id === track?.id;
+          const isSkipped = skippedTracks.includes(track?.id);
+          const menuOpen = menuTrackId === track?.id;
 
+          return (
+            <View
+              style={[
+                styles.trackRow,
+                isPlaying && styles.activeTrackRow,
+                isSkipped && styles.skippedRow
+              ]}
+            >
+              {/* LEFT SIDE */}
+              <TouchableOpacity
+                style={styles.leftSide}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (menuOpen) return;
+                  playSong(track?.uri, track?.id);
+                }}
+              >
+                <Image
+                  source={{ uri: track?.album?.images?.[0]?.url }}
+                  style={styles.trackImage}
+                />
 
- return (
-  <View style={styles.container}>
-    
-    {flatlist}
-    
-  </View>
-   );
- }
- 
- const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: 'black',       // black background
-      justifyContent: 'center',       // center vertically
-      alignItems: 'stretch',           // center horizontally
-      width: '100%',
-    },
-    playlistTitle: {
-      color: 'white',
-      padding: 10,
-     
-    },
-    playlistCover: {
-      width: 200,
-      height: 200,
-      alignItems: 'center'
-    },
-    coverCard: {
-      alignItems: 'center',
-      width: '100%',
-      flex: 1
-    },
-    songCover: {
-      width: 50,
-      height: 50
-    },
-    songName: {
-      color: 'white',
-      padding: 10,
-      fontSize: 14,
-    }
-  
- });
- 
+                <View style={styles.trackInfo}>
+                  <Text
+                    style={[
+                      styles.trackName,
+                      isPlaying && styles.activeTrackText,
+                      isSkipped && styles.skippedText
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {track?.name}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.trackArtist,
+                      isSkipped && styles.skippedText
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {track?.artists?.map((a: any) => a.name).join(', ')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* RIGHT SIDE */}
+              <View style={styles.rightSide}>
+                {menuOpen ? (
+                  <View style={styles.inlineMenu}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        toggleSkip(track?.id);
+                        setMenuTrackId(null);
+                      }}
+                    >
+                      <Text style={styles.menuItem}>
+                        {isSkipped ? 'Unskip' : 'Skip'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setMenuTrackId(null)}
+                    >
+                      <Text style={styles.menuItem}>Close</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() =>
+                      setMenuTrackId(
+                        menuTrackId === track?.id ? null : track?.id
+                      )
+                    }
+                    style={styles.menuButton}
+                  >
+                    <Text style={{ color: 'white', fontSize: 18 }}>⋮</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          );
+        }}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'black'
+  },
+
+  playlistTitle: {
+    color: 'white',
+    padding: 10
+  },
+
+  playlistCover: {
+    width: 200,
+    height: 200
+  },
+
+  coverCard: {
+    alignItems: 'center'
+  },
+
+  trackRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    paddingHorizontal: 12,
+    height: 64
+  },
+
+  leftSide: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+
+  rightSide: {
+    width: 60,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+
+  trackImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 4
+  },
+
+  trackInfo: {
+    flex: 1,
+    marginLeft: 12
+  },
+
+  trackName: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600'
+  },
+
+  trackArtist: {
+    color: '#B3B3B3',
+    fontSize: 13
+  },
+
+  activeTrackRow: {
+    backgroundColor: '#1e1e1e'
+  },
+
+  activeTrackText: {
+    color: '#1DB954'
+  },
+
+  skippedRow: {
+    opacity: 0.4
+  },
+
+  skippedText: {
+    color: '#777'
+  },
+
+  inlineMenu: {
+    flexDirection: 'row',
+  },
+
+  menuItem: {
+    color: 'white',
+    fontSize: 13,
+    paddingHorizontal: 8
+  },
+
+  menuButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+});

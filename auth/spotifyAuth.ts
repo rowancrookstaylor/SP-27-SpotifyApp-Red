@@ -34,7 +34,10 @@ export function useSpotifyAuth() {
                     'user-read-recently-played',
                     'user-read-playback-state',
                     'user-modify-playback-state',
-                    'playlist-read-private'
+                    'playlist-read-private',
+                    'playlist-modify-public',
+                    'playlist-modify-private',
+                    
                 ],
                 redirectUri, 
                 responseType: AuthSession.ResponseType.Code,

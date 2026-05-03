@@ -113,8 +113,8 @@ export default function Dashboard() {
   return (
     <View style={styles.container}>
       <View style={styles.settingsBar}>
-        <Text style={styles.playlistName}>
-          top bar text
+        <Text style={styles.topBar}>
+          Your Playlists
         </Text>
       </View>
 
@@ -166,6 +166,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333',
 
-  }
+  },
+  topBar: {
+      alignContent: 'center',
+      fontSize: 18,
+      color: 'white',
+      justifyContent: 'center'
+    },
 
 });
