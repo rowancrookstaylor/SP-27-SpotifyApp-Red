@@ -32,10 +32,10 @@ Built with **React Native + Expo**, the project integrates Spotify OAuth authent
 | Resource | Link |
 |---------|------|
 | Final Report (PDF) | [Open PDF](files/final-report.pdf) |
-| Requirements Document (PDF) | [Open PDF]({{ site.baseurl }}/files/SP-27-Red-Spotify-SRS.pdf) |
-| Software Design Document (PDF) | [Open PDF]({{ site.baseurl }}/files/SP-27-Red-Spotify-SDD.pdf) |
-| Test Plan / Report (PDF) | [Open PDF]({{ site.baseurl }}/files/STP-Red-Spotify.pdf) |
-| Development Document (PDF) | [Open PDF]({{ site.baseurl }}/files/SP27-Red-Spotify_App-Development.pdf) |
+| Requirements Document (PDF) | [Open PDF](files/SP-27-Red-Spotify-SRS.pdf) |
+| Software Design Document (PDF) | [Open PDF](files/SP-27-Red-Spotify-SDD.pdf) |
+| Test Plan / Report (PDF) | [Open PDF](files/STP-Red-Spotify.pdf) |
+| Development Document (PDF) | [Open PDF](files/SP27-Red-Spotify_App-Development.pdf) |
 | Final Presentation Video | [Watch Presentation](https://youtube.com/your-video-link) |
 | GitHub Repository | [View Source Code](https://github.com/rowancrookstaylor/SP-27-SpotifyApp-Red) |
 
