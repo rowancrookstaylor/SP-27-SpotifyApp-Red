@@ -21,7 +21,6 @@ export function useSpotifyAuth() {
 */
     const redirectUri = 'spotifyapp://redirect'
 
-    
 
     const [request, response, promptAsync] =
         AuthSession.useAuthRequest(
@@ -34,7 +33,8 @@ export function useSpotifyAuth() {
                     'playlist-read-private',
                     'user-read-recently-played',
                     'user-read-playback-state',
-                    'user-modify-playback-state'
+                    'user-modify-playback-state',
+                    'playlist-read-private'
                 ],
                 redirectUri, 
                 responseType: AuthSession.ResponseType.Code,
