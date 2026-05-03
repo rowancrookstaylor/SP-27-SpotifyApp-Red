@@ -25,7 +25,7 @@ type Track = {
 };
 
 export default function Home() {
-
+    
 
     const { request, response, promptAsync, redirectUri } =
         useSpotifyAuth();
@@ -65,9 +65,13 @@ export default function Home() {
         handleAuth();
     }, [response]);
 
+    const [topArtistsShort, setTopArtistsShort] = useState<any[]>([]);
+    const [topArtistsMid, setTopArtistsMid] = useState<any[]>([]);
+    const [topArtistsLong, setTopArtistsLong] = useState<any[]>([]);
 
-    const [topArtists, setTopArtists] = useState<any[]>([]);
-    const [topTracks, setTopTracks] = useState<Track[]>([]);
+    const [topTracksShort, setTopTracksShort] = useState<Track[]>([]);
+    const [topTracksMid, setTopTracksMid] = useState<Track[]>([]);
+    const [topTracksLong, setTopTracksLong] = useState<Track[]>([]);
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
 
@@ -76,20 +80,48 @@ export default function Home() {
         if (!token) return;
 
         // Top Artists
+        fetch('https://api.spotify.com/v1/me/top/artists?time_range=short_term&offset=0&limit=6', {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => res.json())
+            .then(data => setTopArtistsShort(data.items))
+            .catch(err => console.error(err));
         fetch('https://api.spotify.com/v1/me/top/artists?time_range=medium_term&offset=0&limit=6', {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
-            .then(data => setTopArtists(data.items))
+            .then(data => setTopArtistsMid(data.items))
+            .catch(err => console.error(err));
+        fetch('https://api.spotify.com/v1/me/top/artists?time_range=long_term&offset=0&limit=6', {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => res.json())
+            .then(data => setTopArtistsLong(data.items))
             .catch(err => console.error(err));
 
+
+
         // Top Tracks
+        fetch('https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=6&offset=0', {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => res.json())
+            .then(data => setTopTracksShort(data.items))
+            .catch(err => console.error(err));
         fetch('https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=6&offset=0', {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
-            .then(data => setTopTracks(data.items))
+            .then(data => setTopTracksMid(data.items))
             .catch(err => console.error(err));
+        fetch('https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=6&offset=0', {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => res.json())
+            .then(data => setTopTracksLong(data.items))
+            .catch(err => console.error(err));
+
+
 
         // Playlists
         fetch('https://api.spotify.com/v1/me/playlists?limit=5', {
@@ -210,15 +242,61 @@ export default function Home() {
                             <ScrollView style={{ marginTop: 20 }} showsVerticalScrollIndicator={false }>
                             <View style={styles.element}>
                                 <Text style={styles.elementTitle}>
-                                    Your Top Items
+                                    Your Top Artists
                                 </Text>
 
                                 <Text style={styles.elementSubhead}>
-                                    Top Artists (Last 6 Months)
+                                    Last 4 Weeks
                                 </Text>
 
                                     <View style={styles.topRow}>
-                                        {topArtists.slice(0, 6).map((artist, index) => (
+                                        {topArtistsShort.slice(0, 6).map((artist, index) => (
+                                            <View key={index} style={styles.topCard}>
+
+                                                {artist?.images?.[0]?.url && (
+                                                    <Image
+                                                        source={{ uri: artist.images[0].url }}
+                                                        style={styles.topImage}
+                                                    />
+                                                )}
+
+                                                <Text style={styles.topName}>
+                                                    {artist?.name ?? "Loading..."}
+                                                </Text>
+
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                <Text style={styles.elementSubhead}>
+                                    Last 6 Months
+                                </Text>
+
+                                    <View style={styles.topRow}>
+                                        {topArtistsMid.slice(0, 6).map((artist, index) => (
+                                            <View key={index} style={styles.topCard}>
+
+                                                {artist?.images?.[0]?.url && (
+                                                    <Image
+                                                        source={{ uri: artist.images[0].url }}
+                                                        style={styles.topImage}
+                                                    />
+                                                )}
+
+                                                <Text style={styles.topName}>
+                                                    {artist?.name ?? "Loading..."}
+                                                </Text>
+
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                <Text style={styles.elementSubhead}>
+                                    Last 12 Months
+                                </Text>
+
+                                    <View style={styles.topRow}>
+                                        {topArtistsLong.slice(0, 6).map((artist, index) => (
                                             <View key={index} style={styles.topCard}>
 
                                                 {artist?.images?.[0]?.url && (
@@ -237,12 +315,20 @@ export default function Home() {
                                     </View>
                                 
 
+                                
+                                </View> 
+
+                            <View style={styles.element}>
+                                <Text style={styles.elementTitle}>
+                                    Your Top Tracks
+                                </Text>
+
                                 <Text style={styles.elementSubhead}>
-                                    Top Tracks (Last 6 Months)
+                                    Last 4 Weeks
                                 </Text>
 
                                     <View style={styles.topRow}>
-                                        {topTracks.slice(0, 6).map((track, index) => (
+                                        {topTracksShort.slice(0, 6).map((track, index) => (
                                             <View key={index} style={styles.topCard}>
 
                                                 {track?.album?.images?.[0]?.url && (
@@ -259,14 +345,52 @@ export default function Home() {
                                             </View>
                                         ))}
                                     </View>
-                                </View> 
 
-                            <View style={styles.element}>
-                                <Text style={styles.elementTitle}>
-                                    New Music
+                                <Text style={styles.elementSubhead}>
+                                    Last 6 Months
                                 </Text>
 
-                                    
+                                    <View style={styles.topRow}>
+                                        {topTracksMid.slice(0, 6).map((track, index) => (
+                                            <View key={index} style={styles.topCard}>
+
+                                                {track?.album?.images?.[0]?.url && (
+                                                    <Image
+                                                        source={{ uri: track?.album?.images[0].url }}
+                                                        style={styles.topImage}
+                                                    />
+                                                )}
+
+                                                <Text style={styles.topName}>
+                                                    {track?.name ?? "Loading..."}
+                                                </Text>
+
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                <Text style={styles.elementSubhead}>
+                                    Last 12 Months
+                                </Text>
+
+                                    <View style={styles.topRow}>
+                                        {topTracksLong.slice(0, 6).map((track, index) => (
+                                            <View key={index} style={styles.topCard}>
+
+                                                {track?.album?.images?.[0]?.url && (
+                                                    <Image
+                                                        source={{ uri: track?.album?.images[0].url }}
+                                                        style={styles.topImage}
+                                                    />
+                                                )}
+
+                                                <Text style={styles.topName}>
+                                                    {track?.name ?? "Loading..."}
+                                                </Text>
+
+                                            </View>
+                                        ))}
+                                    </View>
 
 
                             </View>
@@ -343,16 +467,17 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     topRow: {
-        flexDirection: 'row',       // makes them side by side
-        justifyContent: 'flex-start',
-        flexWrap: 'wrap',           // optional: allows wrapping if screen small
+        flexDirection: 'row',       
+        justifyContent: 'center',
+        flexWrap: 'wrap',           
+        
     },
 
     topCard: {
         alignItems: 'center',       // center text under image
         marginRight: 15,
         marginBottom: 20,
-        width: 80,                  // keeps spacing consistent
+        width: 80,                  
         marginTop: 10,
     },
 
