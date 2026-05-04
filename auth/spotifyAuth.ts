@@ -37,6 +37,8 @@ export function useSpotifyAuth() {
                     'playlist-read-private',
                     'playlist-modify-public',
                     'playlist-modify-private',
+                    'user-library-modify',
+                    'user-library-read'
                     
                 ],
                 redirectUri, 
