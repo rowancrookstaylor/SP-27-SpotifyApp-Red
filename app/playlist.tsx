@@ -182,7 +182,7 @@ export default function PlaylistScreen() {
                 </View>
               </TouchableOpacity>
 
-              {/* RIGHT SIDE */}
+              {/* side menu  */}
               <View style={styles.rightSide}>
                 {menuOpen ? (
                   <View style={styles.inlineMenu}>
@@ -229,88 +229,71 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'black'
   },
-
   playlistTitle: {
     color: 'white',
     padding: 10
   },
-
   playlistCover: {
     width: 200,
     height: 200
   },
-
   coverCard: {
     alignItems: 'center'
   },
-
   trackRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
     paddingHorizontal: 12,
     height: 64
   },
-
   leftSide: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center'
   },
-
   rightSide: {
     width: 60,
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
-
   trackImage: {
     width: 48,
     height: 48,
     borderRadius: 4
   },
-
   trackInfo: {
     flex: 1,
     marginLeft: 12
   },
-
   trackName: {
     color: 'white',
     fontSize: 15,
     fontWeight: '600'
   },
-
   trackArtist: {
     color: '#B3B3B3',
     fontSize: 13
   },
-
   activeTrackRow: {
     backgroundColor: '#1e1e1e'
   },
-
   activeTrackText: {
     color: '#1DB954'
   },
-
   skippedRow: {
     opacity: 0.4
   },
-
   skippedText: {
     color: '#777'
   },
-
   inlineMenu: {
     flexDirection: 'row',
   },
-
   menuItem: {
     color: 'white',
     fontSize: 13,
     paddingHorizontal: 8
   },
-
   menuButton: {
     width: 40,
     height: 40,

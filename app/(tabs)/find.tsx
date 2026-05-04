@@ -134,7 +134,6 @@ export default function Search() {
   };
 
   const onSongPress = async (song: any) => {
-    await addToQueue(song.uri);
     await playSong(song.uri);
   };
 
