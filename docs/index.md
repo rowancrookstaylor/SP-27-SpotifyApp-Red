@@ -7,7 +7,7 @@ title: SP-27 Red Spotify
 
 | Member | Member | Member | Member |
 |--------|--------|--------|--------|
-| ![Rowan](images/rowan.jpg)<br>**Rowan Crooks-Taylor**<br>Lead / Developer | ![Andrew](images/andrew.jpg)<br>**Andrew Henshaw**<br>Documenter / Tester | ![Davon](images/davon.jpg)<br>**Davon Appolon**<br>Developer | ![Isaiah](images/isaiah.jpg)<br>**Isaiah Langford**<br>Documenter / Tester |
+| ![Rowan](files/rowan.jpg)<br>**Rowan Crooks-Taylor**<br>Lead / Developer | ![Andrew](files/andrew.jpg)<br>**Andrew Henshaw**<br>Documenter / Tester | ![Davon](files/davon.jpg)<br>**Davon Appolon**<br>Developer | ![Isaiah](files/isaiah.jpg)<br>**Isaiah Langford**<br>Documenter / Tester |
 
 ---
 
