@@ -1,5 +1,8 @@
+//app/tabs/index.tsx
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import {
     Button, DevSettings,
@@ -16,6 +19,8 @@ import {
     getUserProfile,
     refreshAccessToken
 } from '../../services/spotifyApi';
+
+WebBrowser.maybeCompleteAuthSession();
 
 /*
 indentation in this file is a little weird because it was initially written in VS before 
@@ -50,6 +55,7 @@ export default function Home() {
 
     //control login
     useEffect(() => {
+
         const handleAuth = async () => {
             if (response?.type === 'success') {
                 const { code } = response.params;
@@ -60,6 +66,8 @@ export default function Home() {
                     request?.codeVerifier!
                 );
 
+                
+
                 const expirationTime =
                     Date.now() + tokenData.expires_in * 1000;
 
@@ -68,6 +76,8 @@ export default function Home() {
                     ['spotify_refresh_token', tokenData.refresh_token],
                     ['spotify_expiration', expirationTime.toString()],
                 ]);
+
+                
 
                 setToken(tokenData.access_token);
 
@@ -234,21 +244,6 @@ export default function Home() {
 
     initializeAuth();
 }, []);   
-
-    //load token
-    useEffect(() => {
-        const loadToken = async () => {
-            const storedToken = await AsyncStorage.getItem('spotify_token');
-
-            if(storedToken) {
-                setToken(storedToken);
-                const profile = await getUserProfile(storedToken);
-                setUser(profile);
-            }
-        };
-
-        loadToken();
-    }, []);
     
     const logOut = async () => {
         try {
@@ -307,6 +302,7 @@ export default function Home() {
         }
     }
 
+    //popup for playlist creation
     const createModal = (
         <View style={styles.createBox}>
 
@@ -406,7 +402,10 @@ export default function Home() {
         </View>
     )
 
-
+/*
+i wrote this page before i was super familiar with react, so the 
+formatting isn't the most ideal
+*/
     return (
         <View style={{ flex: 1, backgroundColor: 'black' }}>
             <View style={{ padding: 20, flex: 1 }}>
@@ -415,7 +414,14 @@ export default function Home() {
                         <Button
                             title="Login with Spotify"
                             disabled={!request}
-                            onPress={() => promptAsync()}
+                            onPress={() => {
+
+                                if (request) {
+                                    promptAsync();
+                                } else {
+                                    console.log("Request is NULL — cannot start auth");
+                                }
+                            }}
                             color='#f86345'
                         />
                     </View>

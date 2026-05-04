@@ -11,14 +11,7 @@ const discovery = {
 };
 
 export function useSpotifyAuth() {
-    
-    /*
-    const redirectUri = AuthSession.makeRedirectUri({
-        native: 'spotifyapp://redirect', 
-        scheme: 'spotifyapp'
 
-    });
-*/
     const redirectUri = 'spotifyapp://redirect'
 
 
@@ -34,12 +27,10 @@ export function useSpotifyAuth() {
                     'user-read-recently-played',
                     'user-read-playback-state',
                     'user-modify-playback-state',
-                    'playlist-read-private',
                     'playlist-modify-public',
                     'playlist-modify-private',
                     'user-library-modify',
-                    'user-library-read'
-                    
+                    'user-library-read',
                 ],
                 redirectUri, 
                 responseType: AuthSession.ResponseType.Code,

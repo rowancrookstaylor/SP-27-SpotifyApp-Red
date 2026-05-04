@@ -1,6 +1,5 @@
-// app/tabs/index.tsx
-//import { IconSymbol } from '@/components/ui/icon-symbol';
-//import * as AuthSession from 'expo-auth-session';
+// app/tabs/player.tsx
+
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
@@ -260,15 +259,15 @@ export default function Player() {
                           ? <Animated.Image
                               style={[styles.recordImage, animatedStyle]} 
                               source={require('../../assets/images/recordbase.png')}  
-                          />
+                            />
                           : <Image
                               style={[styles.recordImage]} 
                               source={require('../../assets/images/recordbase.png')}
-                          />
+                            />
                       : <Image
                             style={[styles.recordImage]} 
                             source={require('../../assets/images/recordbase.png')}
-                      />
+                        />
                     }
                     {playbackState
                       ? playbackState.is_playing
@@ -276,15 +275,15 @@ export default function Player() {
                               key={playingTrack?.item?.id}
                               style={[styles.albumArt, animatedStyle]}
                               source={{uri: playingTrack?.item?.album?.images[0]?.url}} 
-                          />
+                            />
                           : <Image
                               style={[styles.albumArt]} 
                               source={{uri: playingTrack?.item?.album?.images[0]?.url}}
-                          />
+                            />
                       : <Image
                               style={[styles.albumArt]} 
                               source={{uri: lastTrack?.items?.track?.album?.images[0]?.url}}
-                          />
+                            />
                     }
                     <Image
                     style={styles.recordMiddle}
@@ -293,17 +292,17 @@ export default function Player() {
                 </View>
 
                 <View style={styles.currentlyPlayingBar}>
-                <Text style={styles.textCurrentSong }>
-                  {playbackState
-                      ? playbackState.item.name
-                      : "No Playback"   }
-                </Text>
+                    <Text style={styles.textCurrentSong }>
+                    {playbackState
+                        ? playbackState.item.name
+                        : "No Playback"   }
+                    </Text>
 
-                <Text style={styles.textCurrentArtist }>
-                  {playbackState
-                      ? playbackState.item.artists[0].name
-                      : "No Playback"   }
-                </Text>
+                    <Text style={styles.textCurrentArtist }>
+                    {playbackState
+                        ? playbackState.item.artists[0].name
+                        : "No Playback"   }
+                    </Text>
                 </View>
 
                 <View style={styles.playbar}>
@@ -347,9 +346,9 @@ export default function Player() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',       // black background
-    justifyContent: 'center',       // center vertically
-    alignItems: 'center',           // center horizontally
+    backgroundColor: 'black',       
+    justifyContent: 'center',       
+    alignItems: 'center',           
     width: '100%',
     marginTop: 50,
   },

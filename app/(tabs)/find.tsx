@@ -1,3 +1,5 @@
+//app/tabs/find.tsx
+
 import React, { useState } from 'react';
 import {
   FlatList,
@@ -191,17 +193,22 @@ export default function Search() {
         />
 
         <View style={styles.textBox}>
+
           <Text numberOfLines={1} style={styles.title}>
             {item.name}
           </Text>
+          
           <Text numberOfLines={1} style={styles.artist}>
             {item.artists.map((a: any) => a.name).join(', ')}
           </Text>
+
         </View>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => openMenu(item)}>
-        <Text style={styles.menuDots}>⋯</Text>
+        <Text style={styles.menuDots}>
+          ⋯
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -215,7 +222,9 @@ export default function Search() {
         source={{ uri: item.images?.[0]?.url }}
         style={styles.playlistCover}
       />
-      <Text style={styles.playlistName}>{item.name}</Text>
+      <Text style={styles.playlistName}>
+        {item.name}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -238,10 +247,15 @@ export default function Search() {
       <Modal transparent visible={menuVisible} animationType="slide">
         <View style={styles.overlay}>
           <View style={styles.sheet}>
-            <Text style={styles.titleText}>{selectedSong?.name}</Text>
+
+            <Text style={styles.titleText}>
+              {selectedSong?.name}
+            </Text>
 
             <TouchableOpacity onPress={() => openPlaylistPicker(selectedSong)}>
-              <Text style={styles.optionText}>Add to playlist</Text>
+              <Text style={styles.optionText}>
+                Add to playlist
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -251,7 +265,9 @@ export default function Search() {
                 setMenuVisible(false);
               }}
             >
-              <Text style={styles.optionText}>Add to queue</Text>
+              <Text style={styles.optionText}>
+                Add to queue
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -261,12 +277,17 @@ export default function Search() {
                 setMenuVisible(false);
               }}
             >
-              <Text style={styles.optionText}>Like song</Text>
+              <Text style={styles.optionText}>
+                Like song
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setMenuVisible(false)}>
-              <Text style={styles.close}>Close</Text>
+              <Text style={styles.close}>
+                Close
+              </Text>
             </TouchableOpacity>
+
           </View>
         </View>
       </Modal>
@@ -274,7 +295,10 @@ export default function Search() {
       <Modal transparent visible={playlistPickerVisible} animationType="slide">
         <View style={styles.overlay}>
           <View style={styles.sheet}>
-            <Text style={styles.titleText}>Select Playlist</Text>
+            
+            <Text style={styles.titleText}>
+              Select Playlist
+            </Text>
 
             <FlatList
               data={playlists}
@@ -283,8 +307,11 @@ export default function Search() {
             />
 
             <TouchableOpacity onPress={() => setPlaylistPickerVisible(false)}>
-              <Text style={styles.close}>Close</Text>
+              <Text style={styles.close}>
+                Close
+              </Text>
             </TouchableOpacity>
+
           </View>
         </View>
       </Modal>
@@ -299,7 +326,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     paddingTop: 50
   },
-
   searchBar: {
     backgroundColor: '#1e1e1e',
     margin: 10,
@@ -307,52 +333,43 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     color: 'white'
   },
-
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10
   },
-
   songInfo: {
     flexDirection: 'row',
     flex: 1,
     alignItems: 'center'
   },
-
   cover: {
     width: 50,
     height: 50,
     borderRadius: 4
   },
-
   textBox: {
     marginLeft: 10,
     flex: 1
   },
-
   title: {
     color: 'white',
     fontSize: 14
   },
-
   artist: {
     color: '#aaa',
     fontSize: 12
   },
-
   menuDots: {
     color: 'white',
     fontSize: 22,
     paddingHorizontal: 10
   },
-
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.5)'
   },
-
   sheet: {
     backgroundColor: '#111',
     padding: 20,
@@ -360,36 +377,30 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 15,
     maxHeight: '70%'
   },
-
   titleText: {
     color: 'white',
     fontSize: 16,
     marginBottom: 10
   },
-
   optionText: {
     color: 'white',
     paddingVertical: 12
   },
-
   close: {
     color: 'gray',
     textAlign: 'center',
     marginTop: 10
   },
-
   playlistRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10
   },
-
   playlistCover: {
     width: 40,
     height: 40,
     marginRight: 10
   },
-
   playlistName: {
     color: 'white'
   }

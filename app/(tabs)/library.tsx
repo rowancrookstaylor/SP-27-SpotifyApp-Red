@@ -1,4 +1,4 @@
-// app/tabs/index.tsx
+// app/tabs/library.tsx
 
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -337,5 +337,6 @@ const styles = StyleSheet.create({
   topBar: {
     fontSize: 18,
     color: 'white',
+    marginTop: 30
   },
 });
