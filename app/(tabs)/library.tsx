@@ -20,9 +20,6 @@ export default function Dashboard() {
   const [playlists, setPlaylists] = useState<any>({ items: [] });
   const [userId, setUserId] = useState<string | null>(null);
 
-  // -------------------------
-  // REFRESH
-  // -------------------------
   const Refresh = async () => {
     if (!token) return;
 
@@ -66,18 +63,12 @@ export default function Dashboard() {
     router.push({ pathname: '../playlist', params: { playlistId: id } });
   };
 
-  // -------------------------
-  // FULL LIBRARY FETCH (FIXED)
-  // -------------------------
   const getFullLibraryTracks = async () => {
     if (!token) return [];
 
     const trackSet = new Set<string>();
 
     try {
-      // -------------------------
-      // 1. LIKED SONGS
-      // -------------------------
       let url = 'https://api.spotify.com/v1/me/tracks?limit=50';
 
       while (url) {
@@ -98,9 +89,6 @@ export default function Dashboard() {
         url = data?.next ?? null;
       }
 
-      // -------------------------
-      // 2. SAVED ALBUMS → PROPER TRACK FETCH
-      // -------------------------
       url = 'https://api.spotify.com/v1/me/albums?limit=50';
 
       while (url) {
@@ -115,7 +103,6 @@ export default function Dashboard() {
           const albumId = albumItem?.album?.id;
           if (!albumId) continue;
 
-          // IMPORTANT: fetch album tracks properly
           const albumRes = await fetch(
             `https://api.spotify.com/v1/albums/${albumId}/tracks`,
             {
@@ -147,9 +134,6 @@ export default function Dashboard() {
     return result;
   };
 
-  // -------------------------
-  // CREATE PLAYLIST
-  // -------------------------
   const createLibraryPlaylist = async () => {
     if (!token || !userId) return;
 
@@ -202,9 +186,6 @@ export default function Dashboard() {
     }
   };
 
-  // -------------------------
-  // UPDATE PLAYLIST
-  // -------------------------
   const updateLibraryPlaylist = async () => {
     if (!token || !libraryPlaylist?.id) return;
 
@@ -258,9 +239,6 @@ export default function Dashboard() {
     }
   };
 
-  // -------------------------
-  // HEADER BUTTON
-  // -------------------------
   const LibraryHeader = () => {
     const exists = !!libraryPlaylist;
 
@@ -317,7 +295,6 @@ export default function Dashboard() {
   );
 }
 
-// -------------------------
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'black' },
   element: {

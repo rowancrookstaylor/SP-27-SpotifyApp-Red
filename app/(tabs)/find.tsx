@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
-    FlatList,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useSpotify } from '../../context/SpotifyContext';
 
@@ -23,7 +23,6 @@ export default function Search() {
   const [selectedSong, setSelectedSong] = useState<any | null>(null);
   const [playlists, setPlaylists] = useState<any[]>([]);
 
-  // ---------------- SEARCH ----------------
   const searchSongs = async (text: string) => {
     setQuery(text);
 
@@ -44,7 +43,6 @@ export default function Search() {
     }
   };
 
-  // ---------------- PLAYLISTS ----------------
   const fetchPlaylists = async () => {
     if (!token) return;
 
@@ -67,7 +65,6 @@ export default function Search() {
     }
   };
 
-  // ---------------- QUEUE ----------------
   const addToQueue = async (uri: string) => {
     if (!token) return;
 
@@ -88,7 +85,6 @@ export default function Search() {
     }
   };
 
-  // ---------------- PLAY ----------------
   const playSong = async (uri: string) => {
     if (!token) return;
 
@@ -112,7 +108,7 @@ export default function Search() {
     }
   };
 
-  // ---------------- LIKE / SAVE TRACK ----------------
+
   const likeSong = async (id: string) => {
     if (!token) return;
 
@@ -137,7 +133,6 @@ export default function Search() {
     }
   };
 
-  // ---------------- HANDLERS ----------------
   const onSongPress = async (song: any) => {
     await addToQueue(song.uri);
     await playSong(song.uri);
@@ -185,7 +180,6 @@ export default function Search() {
     setPlaylistPickerVisible(false);
   };
 
-  // ---------------- RENDER ----------------
   const renderItem = ({ item }: any) => (
     <View style={styles.row}>
       <TouchableOpacity
@@ -242,7 +236,6 @@ export default function Search() {
         renderItem={renderItem}
       />
 
-      {/* SONG MENU */}
       <Modal transparent visible={menuVisible} animationType="slide">
         <View style={styles.overlay}>
           <View style={styles.sheet}>
@@ -279,7 +272,6 @@ export default function Search() {
         </View>
       </Modal>
 
-      {/* PLAYLIST PICKER */}
       <Modal transparent visible={playlistPickerVisible} animationType="slide">
         <View style={styles.overlay}>
           <View style={styles.sheet}>
@@ -301,7 +293,7 @@ export default function Search() {
   );
 }
 
-// ---------------- STYLES ----------------
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -9,6 +9,13 @@ import {
     refreshAccessToken
 } from '../../services/spotifyApi';
 
+/*
+indentation in this file is a little weird because it was initially written in VS before 
+I switched to using VS Code for the project. any other file with that issue is the same way
+(4 space indent instead of 2)
+*/
+
+
 type Artist = {
     name: string;
     id: string;
@@ -406,9 +413,9 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'black',       // black background
-        justifyContent: 'center',       // center vertically
-        alignItems: 'center',           // center horizontally
+        backgroundColor: 'black',       
+        justifyContent: 'center',       
+        alignItems: 'center',           
         width: '100%',
     },
     element: {
@@ -473,7 +480,7 @@ const styles = StyleSheet.create({
     },
 
     topCard: {
-        alignItems: 'center',       // center text under image
+        alignItems: 'center',       
         marginRight: 15,
         marginBottom: 20,
         width: 80,                  
@@ -483,7 +490,7 @@ const styles = StyleSheet.create({
     topImage: {
         width: 70,
         height: 70,
-        borderRadius: 35,           // circle
+        borderRadius: 35,           
         marginBottom: 6,
     },
 
